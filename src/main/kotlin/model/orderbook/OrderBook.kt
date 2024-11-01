@@ -22,7 +22,7 @@ class OrderBook : BaseOrderBook() {
         TODO("Not yet implemented")
     }
 
-    override fun remove(cancelOrder: CancelOrder) {
+    override fun remove(cancelOrder: CancelOrder): Boolean {
         TODO("Not yet implemented")
     }
 }
