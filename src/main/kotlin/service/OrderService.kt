@@ -1,55 +1,41 @@
 package smith.adam.service
 
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.launch
-import smith.adam.model.Order
-import smith.adam.model.OrderBook
-import smith.adam.model.OrderEvent
+import smith.adam.model.CancelOrder
+import smith.adam.model.LimitOrder
+import smith.adam.model.MarketOrder
+import smith.adam.model.Trade
+import smith.adam.model.orderbook.BaseOrderBook
 
-class OrderService {
-    private val orderBook = OrderBook()
-    private val eventChannel = Channel<OrderEvent>(Channel.UNLIMITED)
-
-    init {
-        @OptIn(DelicateCoroutinesApi::class)
-        GlobalScope.launch {
-            eventChannel.consumeEach { event ->
-                when (event) {
-                    is OrderEvent.CreateOrder -> addOrder(event.order)
-                    is OrderEvent.DeleteOrder -> removeOrder(event.id)
-                }
-            }
-        }
+class OrderService(
+    private var orderBooks: MutableMap<String, BaseOrderBook>,
+    private val orderValidationService: OrderValidationService
+) {
+    fun addOrderBook(currencyPair: String, orderBook: BaseOrderBook) {
+        orderBooks[currencyPair] = orderBook
     }
 
-    fun placeOrder(order: Order): String {
-        val orderId = "order-${System.currentTimeMillis()}"
-        eventChannel.trySend(OrderEvent.CreateOrder(order.copy(id = orderId)))
-        return orderId
+    fun placeMarketOrder(marketOrder: MarketOrder): String {
+        orderValidationService.validate(marketOrder, orderBooks.keys)
+        return orderBooks[marketOrder.pair]!!.placeMarketOrder(marketOrder)
     }
 
-    fun cancelOrder(orderId: String): Boolean {
-        eventChannel.trySend(OrderEvent.DeleteOrder(orderId))
-        return true
+    fun placeLimitOrder(limitOrder: LimitOrder): String {
+        orderValidationService.validate(limitOrder, orderBooks.keys)
+        return orderBooks[limitOrder.pair]!!.placeLimitOrder(limitOrder)
     }
 
-    fun getOrderBook(): OrderBook {
-        return orderBook
+    fun cancelLimitOrder(cancelOrder: CancelOrder): Boolean {
+        orderValidationService.validate(cancelOrder, orderBooks.keys)
+        return orderBooks[cancelOrder.pair]!!.cancelLimitOrder(cancelOrder)
     }
 
-    private fun addOrder(order: Order) {
-        if (order.type == "buy") {
-            orderBook.buyOrders.add(order)
-        } else {
-            orderBook.sellOrders.add(order)
-        }
+    fun getOrderBook(currencyPair: String?): Map<String, List<LimitOrder>> {
+        orderValidationService.validate(currencyPair, orderBooks.keys)
+        return orderBooks[currencyPair]!!.getBook()
     }
 
-    private fun removeOrder(id: String) {
-        orderBook.buyOrders.removeIf { it.id == id }
-        orderBook.sellOrders.removeIf { it.id == id }
+    fun getTradeHistory(currencyPair: String?, offset: Int, limit: Int): List<Trade> {
+        orderValidationService.validate(currencyPair, orderBooks.keys)
+        return orderBooks[currencyPair]!!.getTradeHistory(offset, limit)
     }
 }
