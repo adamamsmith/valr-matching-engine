@@ -11,29 +11,29 @@ class OrderValidationService {
     fun validate(marketOrder: MarketOrder, validCurrencyPairs: MutableSet<String>) {
         val messages = listOf(
             validateCurrencyPair(marketOrder.pair, validCurrencyPairs), validateMarketOrderAmount(marketOrder)
-        )
-        buildException(messages, InvalidBodyException::class.java)
+        ).filter { it != "" }
+        if (messages.isNotEmpty()) throw InvalidBodyException(messages.joinToString(separator = ". ", postfix = "."))
     }
 
     fun validate(limitOrder: LimitOrder, validCurrencyPairs: MutableSet<String>) {
         val messages = listOf(
             validateCurrencyPair(limitOrder.pair, validCurrencyPairs), validateSide(limitOrder)
-        )
-        buildException(messages, InvalidBodyException::class.java)
+        ).filter { it != "" }
+        if (messages.isNotEmpty()) throw InvalidBodyException(messages.joinToString(separator = ". ", postfix = "."))
     }
 
     fun validate(cancelOrder: CancelOrder, validCurrencyPairs: MutableSet<String>) {
         val messages = listOf(
             validateCurrencyPair(cancelOrder.pair, validCurrencyPairs)
-        )
-        buildException(messages, InvalidBodyException::class.java)
+        ).filter { it != "" }
+        if (messages.isNotEmpty()) throw InvalidBodyException(messages.joinToString(separator = ". ", postfix = "."))
     }
 
     fun validate(currencyPair: String?, validCurrencyPairs: MutableSet<String>) {
         val messages = listOf(
             validateCurrencyPair(currencyPair, validCurrencyPairs)
-        )
-        buildException(messages, BadRequestException::class.java)
+        ).filter { it != "" }
+        if (messages.isNotEmpty()) throw BadRequestException(messages.joinToString(separator = ". ", postfix = "."))
     }
 
     private fun validateCurrencyPair(currencyPair: String?, validCurrencyPairs: MutableSet<String>): String {
@@ -54,10 +54,5 @@ class OrderValidationService {
             Side.SELL -> ""
             null -> "Invalid side: ${limitOrder.side}"
         }
-    }
-
-    private fun <E : Exception> buildException(messages: List<String>, exceptionClass: Class<E>) {
-        if (messages.isNotEmpty()) throw exceptionClass.getConstructor(String::class.java)
-            .newInstance(messages.joinToString(separator = ". ", postfix = "."))
     }
 }
