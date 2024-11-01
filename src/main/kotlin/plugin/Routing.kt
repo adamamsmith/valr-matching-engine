@@ -12,35 +12,37 @@ import smith.adam.model.MarketOrder
 import smith.adam.service.OrderService
 
 fun Application.configureRouting(orderService: OrderService) {
+    suspend fun handleRequest(handler: suspend () -> Unit, call: RoutingCall, badRequestMessage: String) {
+        try {
+            handler()
+        } catch (e: BadRequestException) {
+            call.respond(HttpStatusCode.BadRequest, e.message ?: badRequestMessage)
+        } catch (e: Exception) {
+            call.respond(HttpStatusCode.InternalServerError, "An unexpected error occurred")
+        }
+    }
+
     routing {
         post("/orders/market") {
-            try {
+            handleRequest({
                 val marketOrderRequest = call.receive<MarketOrder>()
                 val orderId = orderService.placeMarketOrder(marketOrderRequest)
 
                 call.respond(HttpStatusCode.Created, orderId)
-            } catch (e: BadRequestException) {
-                call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid market order")
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, "An unexpected error occurred")
-            }
+            }, call, "Invalid market order")
         }
 
         post("/orders/limit") {
-            try {
+            handleRequest({
                 val limitOrderRequest = call.receive<LimitOrder>()
                 val orderId = orderService.placeLimitOrder(limitOrderRequest)
 
                 call.respond(HttpStatusCode.Created, orderId)
-            } catch (e: BadRequestException) {
-                call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid limit order")
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, "An unexpected error occurred")
-            }
+            }, call, "Invalid limit order")
         }
 
         delete("/orders/order/{id}") {
-            try {
+            handleRequest({
                 val cancelOrderRequest = call.receive<CancelOrder>()
 
                 if (orderService.cancelLimitOrder(cancelOrderRequest)) {
@@ -48,28 +50,20 @@ fun Application.configureRouting(orderService: OrderService) {
                 } else call.respond(
                     HttpStatusCode.NotFound, "Order not found for id: ${cancelOrderRequest.orderId}"
                 )
-            } catch (e: BadRequestException) {
-                call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid cancel order")
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, "An unexpected error occurred")
-            }
+            }, call, "Invalid cancel order")
         }
 
         get("/public/{currencyPair}/orderbook") {
-            try {
+            handleRequest({
                 val currencyPair = call.parameters["currencyPair"]
                 val orderBook = orderService.getOrderBook(currencyPair)
 
                 call.respond(HttpStatusCode.OK, orderBook)
-            } catch (e: BadRequestException) {
-                call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid orderbook request")
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, "An unexpected error occurred")
-            }
+            }, call, "Invalid orderbook request")
         }
 
         get("/marketdata/{currencyPair}/tradehistory") {
-            try {
+            handleRequest({
                 val currencyPair = call.parameters["currencyPair"]
 
                 val offset = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
@@ -78,11 +72,7 @@ fun Application.configureRouting(orderService: OrderService) {
                 val tradeHistory = orderService.getTradeHistory(currencyPair, offset, limit)
 
                 call.respond(HttpStatusCode.OK, tradeHistory)
-            } catch (e: BadRequestException) {
-                call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid trade history request")
-            } catch (e: Exception) {
-                call.respond(HttpStatusCode.InternalServerError, "An unexpected error occurred")
-            }
+            }, call, "Invalid trade history request")
         }
     }
 }
