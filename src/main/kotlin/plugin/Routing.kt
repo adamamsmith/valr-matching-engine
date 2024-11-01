@@ -19,7 +19,7 @@ fun Application.configureRouting(orderService: OrderService) {
                 val orderId = orderService.placeMarketOrder(marketOrderRequest)
 
                 call.respond(HttpStatusCode.Created, orderId)
-            } catch (e: InvalidBodyException) {
+            } catch (e: BadRequestException) {
                 call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid market order")
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, "An unexpected error occurred")
@@ -32,7 +32,7 @@ fun Application.configureRouting(orderService: OrderService) {
                 val orderId = orderService.placeLimitOrder(limitOrderRequest)
 
                 call.respond(HttpStatusCode.Created, orderId)
-            } catch (e: InvalidBodyException) {
+            } catch (e: BadRequestException) {
                 call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid limit order")
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, "An unexpected error occurred")
@@ -48,7 +48,7 @@ fun Application.configureRouting(orderService: OrderService) {
                 } else call.respond(
                     HttpStatusCode.NotFound, "Order not found for id: ${cancelOrderRequest.orderId}"
                 )
-            } catch (e: InvalidBodyException) {
+            } catch (e: BadRequestException) {
                 call.respond(HttpStatusCode.BadRequest, e.message ?: "Invalid cancel order")
             } catch (e: Exception) {
                 call.respond(HttpStatusCode.InternalServerError, "An unexpected error occurred")
