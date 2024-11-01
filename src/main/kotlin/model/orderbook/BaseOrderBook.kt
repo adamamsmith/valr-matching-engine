@@ -46,7 +46,7 @@ abstract class BaseOrderBook {
         eventChannel.trySend(OrderEvent.CreateLimitOrder(limitOrder.copy(id = orderId)))
         return orderId
     }
-    
+
     fun cancelLimitOrder(cancelOrder: CancelOrder): Boolean {
         return remove(cancelOrder)
     }

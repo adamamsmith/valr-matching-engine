@@ -1,4 +1,4 @@
-package smith.adam.model.orderbook
+package smith.adam.model
 
 enum class Side {
     BUY,
