@@ -1,9 +1,9 @@
 package smith.adam.model.orderbook
 
-import smith.adam.model.CancelOrder
 import smith.adam.model.LimitOrder
 import smith.adam.model.MarketOrder
 import smith.adam.model.Trade
+import smith.adam.model.orderbook.model.Side
 import java.util.*
 
 class SimpleOrderBook : BaseOrderBook() {
@@ -33,15 +33,15 @@ class SimpleOrderBook : BaseOrderBook() {
         }
     }
 
-    override fun remove(cancelOrder: CancelOrder): Boolean {
-        val bidsRemoved = bids.removeIf { it.id == cancelOrder.orderId }
-        val asksRemoved = asks.removeIf { it.id == cancelOrder.orderId }
+    override fun remove(orderId: String): Boolean {
+        val bidsRemoved = bids.removeIf { it.id == orderId }
+        val asksRemoved = asks.removeIf { it.id == orderId }
 
         return bidsRemoved || asksRemoved
     }
 
     override fun execute(marketOrder: MarketOrder) {
-        val isBuyOrder = marketOrder.side == "BUY"
+        val isBuyOrder = Side.fromString(marketOrder.side) == Side.BUY
         val orders = if (isBuyOrder) asks else bids
         val totalOrderAmount = if (isBuyOrder) marketOrder.quoteAmount!! else marketOrder.baseAmount!!
 

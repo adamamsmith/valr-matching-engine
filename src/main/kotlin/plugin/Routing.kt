@@ -44,12 +44,9 @@ fun Application.configureRouting(orderService: OrderService) {
         delete("/orders/order/{id}") {
             handleRequest({
                 val cancelOrderRequest = call.receive<CancelOrder>()
+                val orderId = orderService.cancelLimitOrder(cancelOrderRequest)
 
-                if (orderService.cancelLimitOrder(cancelOrderRequest)) {
-                    call.respond(HttpStatusCode.OK, cancelOrderRequest.orderId)
-                } else call.respond(
-                    HttpStatusCode.NotFound, "Order not found for id: ${cancelOrderRequest.orderId}"
-                )
+                call.respond(HttpStatusCode.Created, orderId)
             }, call, "Invalid cancel order")
         }
 

@@ -24,6 +24,7 @@ abstract class BaseOrderBook {
                 when (event) {
                     is OrderEvent.CreateLimitOrder -> add(event.limitOrder)
                     is OrderEvent.CreateMarketOrder -> execute(event.marketOrder)
+                    is OrderEvent.CancelLimitOrder -> remove(event.cancelOrder.orderId)
                 }
             }
         }
@@ -47,8 +48,9 @@ abstract class BaseOrderBook {
         return orderId
     }
 
-    fun cancelLimitOrder(cancelOrder: CancelOrder): Boolean {
-        return remove(cancelOrder)
+    fun cancelLimitOrder(cancelOrder: CancelOrder): String {
+        eventChannel.trySend(OrderEvent.CancelLimitOrder(cancelOrder))
+        return cancelOrder.orderId
     }
 
     abstract fun getBook(): Map<String, List<LimitOrder>>
@@ -59,5 +61,5 @@ abstract class BaseOrderBook {
 
     protected abstract fun execute(marketOrder: MarketOrder)
 
-    protected abstract fun remove(cancelOrder: CancelOrder): Boolean
+    protected abstract fun remove(orderId: String): Boolean
 }

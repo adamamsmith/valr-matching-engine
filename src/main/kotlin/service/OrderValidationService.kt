@@ -4,7 +4,7 @@ import io.ktor.server.plugins.*
 import smith.adam.model.CancelOrder
 import smith.adam.model.LimitOrder
 import smith.adam.model.MarketOrder
-import smith.adam.model.Side
+import smith.adam.model.orderbook.model.Side
 
 class OrderValidationService {
     fun validate(marketOrder: MarketOrder, validCurrencyPairs: MutableSet<String>) {

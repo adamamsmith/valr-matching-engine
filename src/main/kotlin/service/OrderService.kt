@@ -24,7 +24,7 @@ class OrderService(
         return orderBooks[limitOrder.pair]!!.placeLimitOrder(limitOrder)
     }
 
-    fun cancelLimitOrder(cancelOrder: CancelOrder): Boolean {
+    fun cancelLimitOrder(cancelOrder: CancelOrder): String {
         orderValidationService.validate(cancelOrder, orderBooks.keys)
         return orderBooks[cancelOrder.pair]!!.cancelLimitOrder(cancelOrder)
     }
