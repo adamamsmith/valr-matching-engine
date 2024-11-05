@@ -1,8 +1,8 @@
 package smith.adam
 
 import io.ktor.server.application.*
-import smith.adam.model.orderbook.BaseOrderBook
-import smith.adam.model.orderbook.SimpleOrderBook
+import smith.adam.orderbook.BaseOrderBook
+import smith.adam.orderbook.SimpleOrderBook
 import smith.adam.plugin.configureRouting
 import smith.adam.plugin.configureSerialization
 import smith.adam.service.OrderService
@@ -14,8 +14,8 @@ fun main(args: Array<String>) {
 
 fun Application.module() {
     val orderBooks: MutableMap<String, BaseOrderBook> = mutableMapOf(
-        "BTCUSD" to SimpleOrderBook(),
-        "ETHUSD" to SimpleOrderBook()
+        "BTCUSD" to SimpleOrderBook("BTCUSD", 2),
+        "ETHUSD" to SimpleOrderBook("ETHUSD", 6),
     )
     val orderValidationService = OrderValidationService()
 

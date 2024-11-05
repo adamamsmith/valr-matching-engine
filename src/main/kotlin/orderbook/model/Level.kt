@@ -1,18 +1,14 @@
-package smith.adam.model.orderbook.model
+package smith.adam.orderbook.model
 
-import smith.adam.model.LimitOrder
-import smith.adam.model.orderbook.tree.RedBlackTree.Node
-import java.util.*
 import kotlin.NoSuchElementException
-import kotlin.collections.ArrayDeque
 
 data class Level(
     val side: Side,
     val price: Double,
     var size: Int,
     var totalQuantity: Double,
-    var headOrder: BookOrder? = null,
-    var tailOrder: BookOrder? = null
+    var headOrder: LimitOrder? = null,
+    var tailOrder: LimitOrder? = null
 ) : Comparable<Level> {
     override fun compareTo(other: Level): Int {
         return this.price.compareTo(other.price)
@@ -23,7 +19,7 @@ data class Level(
         val result = mutableListOf<LimitOrder>()
 
         while (order != null) {
-            result.add(LimitOrder.fromBookOrder(order))
+            result.add(order)
             order = order.nextOrder
         }
         return result
@@ -31,7 +27,7 @@ data class Level(
 
     fun orderIterator(): Iterator<LimitOrder> {
         return object : Iterator<LimitOrder> {
-            private var currentOrder: BookOrder? = null
+            private var currentOrder: LimitOrder? = null
 
             override fun hasNext(): Boolean {
                 if (currentOrder == null) return headOrder != null
@@ -48,7 +44,7 @@ data class Level(
                     currentOrder?.nextOrder
                 }
 
-                return LimitOrder.fromBookOrder(currentOrder!!)
+                return currentOrder!!
             }
         }
     }

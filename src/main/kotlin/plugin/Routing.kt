@@ -6,9 +6,9 @@ import io.ktor.server.plugins.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
-import smith.adam.model.CancelOrder
-import smith.adam.model.LimitOrder
-import smith.adam.model.MarketOrder
+import smith.adam.orderbook.model.CancelOrder
+import smith.adam.orderbook.model.LimitOrder
+import smith.adam.orderbook.model.MarketOrder
 import smith.adam.service.OrderService
 
 fun Application.configureRouting(orderService: OrderService) {

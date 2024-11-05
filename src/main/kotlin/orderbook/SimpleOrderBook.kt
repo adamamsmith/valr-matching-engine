@@ -1,12 +1,12 @@
-package smith.adam.model.orderbook
+package smith.adam.orderbook
 
-import smith.adam.model.LimitOrder
-import smith.adam.model.MarketOrder
-import smith.adam.model.Trade
-import smith.adam.model.orderbook.model.Side
+import smith.adam.orderbook.model.BaseOrder
+import smith.adam.orderbook.model.LimitOrder
+import smith.adam.orderbook.model.Trade
+import smith.adam.orderbook.model.Side
 import java.util.*
 
-class SimpleOrderBook : BaseOrderBook() {
+class SimpleOrderBook(pair: String, decimals: Int) : BaseOrderBook(pair, decimals) {
     private val bids: TreeSet<LimitOrder> =
         TreeSet<LimitOrder>(compareByDescending<LimitOrder> { it.price }.thenBy { it.timestamp })
     private val asks: TreeSet<LimitOrder> =
@@ -40,30 +40,35 @@ class SimpleOrderBook : BaseOrderBook() {
         return bidsRemoved || asksRemoved
     }
 
-    override fun execute(marketOrder: MarketOrder) {
-        val isBuyOrder = Side.fromString(marketOrder.side) == Side.BUY
+    override fun match(order: BaseOrder): Double {
+        val isBuyOrder = Side.fromString(order.side) == Side.BUY
         val orders = if (isBuyOrder) asks else bids
-        val totalOrderAmount = if (isBuyOrder) marketOrder.quoteAmount!! else marketOrder.baseAmount!!
+        val totalOrderAmount = if (isBuyOrder) order.quoteAmount!! else order.baseAmount!!
 
         var remainingQuantity = totalOrderAmount
         var weightedAveragePrice = 0.0
 
-        val it: MutableIterator<LimitOrder> = orders.iterator()
-        while (it.hasNext()) {
-            val order = it.next()
+        val limitOrderIt: MutableIterator<LimitOrder> = orders.iterator()
+        while (limitOrderIt.hasNext()) {
+            val limitOrder = limitOrderIt.next()
 
             if (remainingQuantity <= 0) break
-            val tradeQuantity = minOf(remainingQuantity, order.quantity)
+            if (order.price != null) {
+                if ((isBuyOrder && order.price!! < limitOrder.price)
+                    || (!isBuyOrder && order.price!! > limitOrder.price)
+                ) break
+            }
+            val tradeQuantity = minOf(remainingQuantity, limitOrder.quantity)
 
             remainingQuantity -= tradeQuantity
-            weightedAveragePrice += order.price * tradeQuantity
+            weightedAveragePrice += limitOrder.price * tradeQuantity
 
-            if (order.quantity > tradeQuantity) {
-                val updatedOrder = order.copy(quantity = order.quantity - tradeQuantity)
-                it.remove()
+            if (limitOrder.quantity > tradeQuantity) {
+                val updatedOrder = limitOrder.copy(quantity = limitOrder.quantity - tradeQuantity)
+                limitOrderIt.remove()
                 orders.add(updatedOrder)
             } else {
-                it.remove()
+                limitOrderIt.remove()
             }
         }
 
@@ -71,7 +76,7 @@ class SimpleOrderBook : BaseOrderBook() {
 
         val trade = Trade(
             id = "${System.currentTimeMillis()}-0002",
-            currencyPair = marketOrder.pair,
+            currencyPair = order.pair,
             price = weightedAveragePrice,
             quantity = totalOrderAmount - remainingQuantity,
             tradedAt = "${System.currentTimeMillis()}",
@@ -80,5 +85,6 @@ class SimpleOrderBook : BaseOrderBook() {
             quoteVolume = totalOrderAmount - remainingQuantity
         )
         (tradeHistory as MutableList).addFirst(trade)
+        return remainingQuantity
     }
 }

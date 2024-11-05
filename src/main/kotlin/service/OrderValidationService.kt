@@ -1,9 +1,9 @@
 package smith.adam.service
 
 import io.ktor.server.plugins.*
-import smith.adam.model.CancelOrder
-import smith.adam.model.LimitOrder
-import smith.adam.model.MarketOrder
+import smith.adam.model.orderbook.model.CancelOrder
+import smith.adam.model.orderbook.model.LimitOrder
+import smith.adam.model.orderbook.model.MarketOrder
 import smith.adam.model.orderbook.model.Side
 
 class OrderValidationService {

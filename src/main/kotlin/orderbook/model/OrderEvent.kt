@@ -1,8 +1,4 @@
-package smith.adam.model.orderbook.model
-
-import smith.adam.model.CancelOrder
-import smith.adam.model.LimitOrder
-import smith.adam.model.MarketOrder
+package smith.adam.orderbook.model
 
 sealed class OrderEvent {
     data class CreateLimitOrder(val limitOrder: LimitOrder) : OrderEvent()

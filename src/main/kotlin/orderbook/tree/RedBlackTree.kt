@@ -1,7 +1,6 @@
-package smith.adam.model.orderbook.tree
+package smith.adam.orderbook.tree
 
 import java.util.*
-import kotlin.NoSuchElementException
 import kotlin.collections.ArrayDeque
 
 class RedBlackTree<T : Comparable<T>> {
@@ -111,8 +110,8 @@ class RedBlackTree<T : Comparable<T>> {
         }
     }
 
-    fun <U> toList(mutator: (T) -> List<U>): List<U> {
-        return traverse(root, mutator = mutator)
+    fun <U> toList(mutator: (T) -> List<U>, reverse: Boolean = false): List<U> {
+        return traverse(root, mutator = mutator, reverse = reverse)
     }
 
     fun visualizeTree() {
@@ -332,14 +331,14 @@ class RedBlackTree<T : Comparable<T>> {
         node.parent = leftChild
     }
 
-    private fun <U> traverse(node: Node<T>?, mutator: (T) -> List<U>): List<U> {
+    private fun <U> traverse(node: Node<T>?, mutator: (T) -> List<U>, reverse: Boolean = false): List<U> {
         if (node == null) return emptyList()
 
         val result = mutableListOf<U>()
 
-        result.addAll(traverse(node.left, mutator = mutator))
+        result.addAll(traverse(if (reverse) node.right else node.left, mutator = mutator, reverse))
         result.addAll(mutator(node.data))
-        result.addAll(traverse(node.right, mutator = mutator))
+        result.addAll(traverse(if (reverse) node.left else node.right, mutator = mutator, reverse))
 
         return result
     }

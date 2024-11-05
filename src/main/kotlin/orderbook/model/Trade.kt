@@ -1,4 +1,4 @@
-package smith.adam.model
+package smith.adam.orderbook.model
 
 import kotlinx.serialization.Serializable
 

@@ -1,26 +1,25 @@
-package smith.adam.model.orderbook
+package smith.adam.orderbook
 
-import smith.adam.model.LimitOrder
-import smith.adam.model.MarketOrder
-import smith.adam.model.Trade
-import smith.adam.model.orderbook.model.BookOrder
-import smith.adam.model.orderbook.model.Level
-import smith.adam.model.orderbook.model.Side
-import smith.adam.model.orderbook.tree.RedBlackTree
+import smith.adam.orderbook.model.BaseOrder
+import smith.adam.orderbook.model.LimitOrder
+import smith.adam.orderbook.model.Trade
+import smith.adam.orderbook.model.Level
+import smith.adam.orderbook.model.Side
+import smith.adam.orderbook.tree.RedBlackTree
 
-class OrderBook : BaseOrderBook() {
+class OrderBook(pair: String, decimals: Int) : BaseOrderBook(pair, decimals) {
     private var bids: RedBlackTree<Level> = RedBlackTree()
     private var asks: RedBlackTree<Level> = RedBlackTree()
     private var bestBid: RedBlackTree.Node<Level>? = null
     private var bestAsk: RedBlackTree.Node<Level>? = null
 
     private var levelNodes: MutableMap<Double, RedBlackTree.Node<Level>> = mutableMapOf()
-    private var orders: MutableMap<String, BookOrder> = mutableMapOf()
+    private var orders: MutableMap<String, LimitOrder> = mutableMapOf()
 
     override fun getBook(): Map<String, List<LimitOrder>> {
         return mapOf(
-            "Bids" to bids.toList { it.orders() },
-            "Asks" to asks.toList { it.orders() }
+            "Bids" to bids.toList({ it.orders() }, true),
+            "Asks" to asks.toList({ it.orders() }, false)
         )
     }
 
@@ -59,7 +58,7 @@ class OrderBook : BaseOrderBook() {
 
         val node = levelNodes[limitOrder.price]!!
         val tailOrder = node.data.tailOrder
-        val order = limitOrder.toBookOrder(nextOrder = null, previousOrder = tailOrder, parent = node)
+        val order = limitOrder.copy(nextOrder = null, previousOrder = tailOrder, parent = node)
 
         if (tailOrder == null) node.data.headOrder = order else tailOrder.nextOrder = order
 
@@ -70,11 +69,11 @@ class OrderBook : BaseOrderBook() {
         orders[order.id!!] = order
     }
 
-    override fun execute(marketOrder: MarketOrder) {
-        val isBuyOrder = Side.fromString(marketOrder.side) == Side.BUY
+    override fun match(order: BaseOrder): Double {
+        val isBuyOrder = Side.fromString(order.side) == Side.BUY
         val bestLevel = if (isBuyOrder) bestAsk else bestBid
         val levels = if (isBuyOrder) asks else bids
-        val totalOrderAmount = if (isBuyOrder) marketOrder.quoteAmount!! else marketOrder.baseAmount!!
+        val totalOrderAmount = if (isBuyOrder) order.quoteAmount!! else order.baseAmount!!
 
         var remainingQuantity = totalOrderAmount
         var weightedAveragePrice = 0.0
@@ -84,6 +83,12 @@ class OrderBook : BaseOrderBook() {
             val node = it.next()
 
             if (remainingQuantity <= 0) break
+            if (order.price != null) {
+                if ((isBuyOrder && order.price!! < node.data.price)
+                    || (!isBuyOrder && order.price!! > node.data.price)
+                ) break
+            }
+
             val tradeQuantity = minOf(remainingQuantity, node.data.totalQuantity)
 
             remainingQuantity -= tradeQuantity
@@ -91,18 +96,18 @@ class OrderBook : BaseOrderBook() {
 
             if (node.data.totalQuantity > tradeQuantity) {
                 var remainingOrderQuantity = tradeQuantity
-                val orderIt = node.data.orderIterator()
-                while (orderIt.hasNext()) {
-                    val order = orderIt.next()
+                val limitOrderIt = node.data.orderIterator()
+                while (limitOrderIt.hasNext()) {
+                    val limitOrder = limitOrderIt.next()
 
                     if (remainingQuantity <= 0) break
-                    val matchedQuantity = minOf(remainingOrderQuantity, order.quantity)
-                    remainingOrderQuantity -= order.quantity
+                    val matchedQuantity = minOf(remainingOrderQuantity, limitOrder.quantity)
+                    remainingOrderQuantity -= limitOrder.quantity
 
-                    if (order.quantity > matchedQuantity) {
-                        order.quantity -= matchedQuantity
+                    if (limitOrder.quantity > matchedQuantity) {
+                        limitOrder.quantity -= matchedQuantity
                     } else {
-                        remove(order.id!!)
+                        remove(limitOrder.id!!)
                     }
                 }
 
@@ -115,7 +120,7 @@ class OrderBook : BaseOrderBook() {
 
         val trade = Trade(
             id = "${System.currentTimeMillis()}-0002",
-            currencyPair = marketOrder.pair,
+            currencyPair = order.pair,
             price = weightedAveragePrice,
             quantity = totalOrderAmount - remainingQuantity,
             tradedAt = "${System.currentTimeMillis()}",
@@ -124,6 +129,7 @@ class OrderBook : BaseOrderBook() {
             quoteVolume = totalOrderAmount - remainingQuantity
         )
         (tradeHistory as MutableList).addFirst(trade)
+        return remainingQuantity
     }
 
     override fun remove(orderId: String): Boolean {

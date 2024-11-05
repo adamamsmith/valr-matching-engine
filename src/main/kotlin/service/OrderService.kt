@@ -1,9 +1,9 @@
 package smith.adam.service
 
-import smith.adam.model.CancelOrder
-import smith.adam.model.LimitOrder
-import smith.adam.model.MarketOrder
-import smith.adam.model.Trade
+import smith.adam.model.orderbook.model.CancelOrder
+import smith.adam.model.orderbook.model.LimitOrder
+import smith.adam.model.orderbook.model.MarketOrder
+import smith.adam.model.orderbook.model.Trade
 import smith.adam.model.orderbook.BaseOrderBook
 
 class OrderService(

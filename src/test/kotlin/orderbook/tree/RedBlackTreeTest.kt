@@ -1,4 +1,4 @@
-package model.orderbook.tree
+package orderbook.tree
 
 import org.junit.jupiter.api.Test
 
@@ -23,7 +23,7 @@ class RedBlackTreeTest {
         val node3 = tree.add(3)
         tree.visualizeTree()
         println()
-        println(tree.toList { listOf(it) })
+        println(tree.toList( { listOf(it) }))
 
         val node10 = tree.add(10)
         tree.visualizeTree()
@@ -31,7 +31,7 @@ class RedBlackTreeTest {
         tree.add(20)
         tree.visualizeTree()
         println()
-        println(tree.toList { listOf(it) })
+        println(tree.toList( { listOf(it) }))
 
         val node30 = tree.add(30)
         var node40 = tree.add(40)
@@ -45,7 +45,7 @@ class RedBlackTreeTest {
         tree.visualizeTree()
         println()
 
-        println(tree.toList { listOf(it) })
+        println(tree.toList ({ listOf(it) }))
 
         val it1 = tree.iteratorFromNode(node1)
         iteratorPrinter(it1)
