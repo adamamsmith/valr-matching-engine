@@ -2,7 +2,7 @@ package orderbook.tree
 
 import org.junit.jupiter.api.Test
 
-import smith.adam.model.orderbook.tree.RedBlackTree
+import smith.adam.orderbook.tree.RedBlackTree
 
 class RedBlackTreeTest {
 
