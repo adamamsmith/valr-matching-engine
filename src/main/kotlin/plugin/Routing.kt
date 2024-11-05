@@ -44,16 +44,21 @@ fun Application.configureRouting(orderService: OrderService) {
         delete("/orders/order/{id}") {
             handleRequest({
                 val cancelOrderRequest = call.receive<CancelOrder>()
-                val orderId = orderService.cancelLimitOrder(cancelOrderRequest)
 
-                call.respond(HttpStatusCode.Created, orderId)
+                //TODO: handle promises
+                if (orderService.cancelLimitOrder(cancelOrderRequest).future().result()) {
+                    call.respond(HttpStatusCode.OK, cancelOrderRequest.orderId)
+                } else call.respond(
+                    HttpStatusCode.NotFound, "Order not found for id: ${cancelOrderRequest.orderId}"
+                )
             }, call, "Invalid cancel order")
         }
 
         get("/public/{currencyPair}/orderbook") {
             handleRequest({
                 val currencyPair = call.parameters["currencyPair"]
-                val orderBook = orderService.getOrderBook(currencyPair)
+                //TODO: handle promises
+                val orderBook = orderService.getBook(currencyPair)
 
                 call.respond(HttpStatusCode.OK, orderBook)
             }, call, "Invalid orderbook request")
@@ -66,6 +71,7 @@ fun Application.configureRouting(orderService: OrderService) {
                 val offset = call.request.queryParameters["offset"]?.toIntOrNull() ?: 0
                 val limit = call.request.queryParameters["limit"]?.toIntOrNull() ?: 100
 
+                //TODO: handle promises
                 val tradeHistory = orderService.getTradeHistory(currencyPair, offset, limit)
 
                 call.respond(HttpStatusCode.OK, tradeHistory)

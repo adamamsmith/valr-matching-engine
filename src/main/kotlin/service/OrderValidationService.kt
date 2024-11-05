@@ -42,6 +42,7 @@ class OrderValidationService {
     }
 
     private fun validateCurrencyPair(currencyPair: String?, validCurrencyPairs: MutableSet<String>): String {
+        if (currencyPair == null) return "Market must be provided"
         return if (currencyPair !in validCurrencyPairs) "Market does not exist for pair $currencyPair" else ""
     }
 

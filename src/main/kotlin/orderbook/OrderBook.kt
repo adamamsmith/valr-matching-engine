@@ -1,10 +1,6 @@
 package smith.adam.orderbook
 
-import smith.adam.orderbook.model.BaseOrder
-import smith.adam.orderbook.model.LimitOrder
-import smith.adam.orderbook.model.Trade
-import smith.adam.orderbook.model.Level
-import smith.adam.orderbook.model.Side
+import smith.adam.orderbook.model.*
 import smith.adam.orderbook.tree.RedBlackTree
 
 class OrderBook(pair: String, decimals: Int) : BaseOrderBook(pair, decimals) {

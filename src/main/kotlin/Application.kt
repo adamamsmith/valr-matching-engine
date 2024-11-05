@@ -1,6 +1,8 @@
 package smith.adam
 
 import io.ktor.server.application.*
+import io.vertx.core.DeploymentOptions
+import io.vertx.core.Vertx
 import smith.adam.orderbook.BaseOrderBook
 import smith.adam.orderbook.SimpleOrderBook
 import smith.adam.plugin.configureRouting
@@ -13,14 +15,30 @@ fun main(args: Array<String>) {
 }
 
 fun Application.module() {
-    val orderBooks: MutableMap<String, BaseOrderBook> = mutableMapOf(
-        "BTCUSD" to SimpleOrderBook("BTCUSD", 2),
-        "ETHUSD" to SimpleOrderBook("ETHUSD", 6),
-    )
-    val orderValidationService = OrderValidationService()
+    val vertx = Vertx.vertx()
 
-    val orderService = OrderService(orderBooks, orderValidationService)
+    val btcOrderBook = SimpleOrderBook("BTCUSD", 2)
+    val ethOrderBook = SimpleOrderBook("ETHUSD", 6)
+
+    deployOrderBookVerticle(vertx, btcOrderBook)
+    deployOrderBookVerticle(vertx, ethOrderBook)
+
+    val orderValidationService = OrderValidationService()
+    val orderService = OrderService(vertx, mutableSetOf("BTCUSD", "ETHUSD"), orderValidationService)
 
     configureSerialization()
     configureRouting(orderService = orderService)
+}
+
+private fun deployOrderBookVerticle(
+    vertx: Vertx,
+    orderBook: BaseOrderBook,
+) {
+    vertx.deployVerticle(orderBook, DeploymentOptions()) { result ->
+        if (result.succeeded()) {
+            println("${orderBook.pair} OrderBook deployed successfully.")
+        } else {
+            println("Failed to deploy ${orderBook.pair} OrderBook: ${result.cause()}")
+        }
+    }
 }

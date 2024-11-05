@@ -16,13 +16,18 @@ repositories {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-server-config-yaml:3.0.0")
-    implementation("io.ktor:ktor-server-core:3.0.0")
-    implementation("io.ktor:ktor-server-netty:3.0.0")
-    implementation("io.ktor:ktor-serialization-kotlinx-json:3.0.0")
-    implementation("io.ktor:ktor-server-html-builder:3.0.0")
+    val vertxVersion = "4.5.9"
+    val kTorVersion = "3.0.0"
+    implementation("io.vertx:vertx-core:${vertxVersion}")
+    implementation("io.vertx:vertx-kotlin:${vertxVersion}")
+    implementation("io.vertx:vertx-kotlin-coroutines:${vertxVersion}")
+    implementation("io.ktor:ktor-server-config-yaml:${kTorVersion}")
+    implementation("io.ktor:ktor-server-core:${kTorVersion}")
+    implementation("io.ktor:ktor-server-netty:${kTorVersion}")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:${kTorVersion}")
+    implementation("io.ktor:ktor-server-html-builder:${kTorVersion}")
+    implementation("io.ktor:ktor-server-content-negotiation:${kTorVersion}")
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
-    implementation("io.ktor:ktor-server-content-negotiation:3.0.0")
     implementation("ch.qos.logback:logback-classic:1.5.6")
     testImplementation(kotlin("test"))
     testImplementation("io.ktor:ktor-server-test-host-jvm:3.0.0")
