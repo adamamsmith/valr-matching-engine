@@ -1,10 +1,10 @@
 package smith.adam.service
 
 import io.ktor.server.plugins.*
-import smith.adam.model.orderbook.model.CancelOrder
-import smith.adam.model.orderbook.model.LimitOrder
-import smith.adam.model.orderbook.model.MarketOrder
-import smith.adam.model.orderbook.model.Side
+import smith.adam.orderbook.model.CancelOrder
+import smith.adam.orderbook.model.LimitOrder
+import smith.adam.orderbook.model.MarketOrder
+import smith.adam.orderbook.model.Side
 
 class OrderValidationService {
     fun validate(marketOrder: MarketOrder, validCurrencyPairs: MutableSet<String>) {

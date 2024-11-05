@@ -2,8 +2,8 @@ package smith.adam.orderbook
 
 import smith.adam.orderbook.model.BaseOrder
 import smith.adam.orderbook.model.LimitOrder
-import smith.adam.orderbook.model.Trade
 import smith.adam.orderbook.model.Side
+import smith.adam.orderbook.model.Trade
 import java.util.*
 
 class SimpleOrderBook(pair: String, decimals: Int) : BaseOrderBook(pair, decimals) {
@@ -73,18 +73,8 @@ class SimpleOrderBook(pair: String, decimals: Int) : BaseOrderBook(pair, decimal
         }
 
         weightedAveragePrice /= (totalOrderAmount - remainingQuantity)
+        addTrade(order, weightedAveragePrice, totalOrderAmount, remainingQuantity)
 
-        val trade = Trade(
-            id = "${System.currentTimeMillis()}-0002",
-            currencyPair = order.pair,
-            price = weightedAveragePrice,
-            quantity = totalOrderAmount - remainingQuantity,
-            tradedAt = "${System.currentTimeMillis()}",
-            takerSide = "BUY",
-            sequenceId = getAndIncrementSequenceId(),
-            quoteVolume = totalOrderAmount - remainingQuantity
-        )
-        (tradeHistory as MutableList).addFirst(trade)
         return remainingQuantity
     }
 }

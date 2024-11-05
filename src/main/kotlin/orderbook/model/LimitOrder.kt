@@ -24,5 +24,23 @@ data class LimitOrder(
         headOrder = null,
         tailOrder = null
     )
+
+    override fun hashCode(): Int {
+        var result = id?.hashCode() ?: 0
+        result = 31 * result + side.hashCode()
+        result = 31 * result + quantity.hashCode()
+        result = 31 * result + price.hashCode()
+        result = 31 * result + pair.hashCode()
+        result = 31 * result + timestamp.hashCode()
+        return result
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return this.hashCode() == other?.hashCode()
+    }
+
+    override fun toString(): String {
+        return "LimitOrder(id=$id, side='$side', quantity=$quantity, price=$price, pair='$pair', timestamp=$timestamp)"
+    }
 }
 

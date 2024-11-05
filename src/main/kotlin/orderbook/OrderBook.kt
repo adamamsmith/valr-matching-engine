@@ -30,6 +30,8 @@ class OrderBook(pair: String, decimals: Int) : BaseOrderBook(pair, decimals) {
     }
 
     override fun add(limitOrder: LimitOrder) {
+        // Check if limit order crossing bid ask spread
+
         if (limitOrder.price !in levelNodes) {
             when (Side.fromString(limitOrder.side)) {
                 Side.BUY -> {
@@ -117,18 +119,8 @@ class OrderBook(pair: String, decimals: Int) : BaseOrderBook(pair, decimals) {
         }
 
         weightedAveragePrice /= (totalOrderAmount - remainingQuantity)
+        addTrade(order, weightedAveragePrice, totalOrderAmount, remainingQuantity)
 
-        val trade = Trade(
-            id = "${System.currentTimeMillis()}-0002",
-            currencyPair = order.pair,
-            price = weightedAveragePrice,
-            quantity = totalOrderAmount - remainingQuantity,
-            tradedAt = "${System.currentTimeMillis()}",
-            takerSide = "BUY",
-            sequenceId = getAndIncrementSequenceId(),
-            quoteVolume = totalOrderAmount - remainingQuantity
-        )
-        (tradeHistory as MutableList).addFirst(trade)
         return remainingQuantity
     }
 
@@ -158,7 +150,9 @@ class OrderBook(pair: String, decimals: Int) : BaseOrderBook(pair, decimals) {
     }
 
     private fun deleteLevel(level: RedBlackTree.Node<Level>, price: Double) {
-        for (order in level.data.orders()) {
+        val it = level.data.orderIterator()
+        while (it.hasNext()) {
+            val order = it.next()
             orders.remove(order.id)
         }
 
