@@ -3,8 +3,13 @@ package smith.adam.orderbook
 import io.vertx.core.AbstractVerticle
 import io.vertx.core.eventbus.EventBus
 import io.vertx.core.eventbus.Message
+import io.vertx.core.impl.logging.Logger
+import io.vertx.core.impl.logging.LoggerFactory
+import kotlinx.serialization.json.JsonObject
 import smith.adam.orderbook.model.*
 import java.util.concurrent.atomic.AtomicLong
+
+val logger: Logger = LoggerFactory.getLogger("BaseOrderBook")
 
 abstract class BaseOrderBook(val pair: String, val decimals: Int) : AbstractVerticle() {
     private val sequenceId = AtomicLong(0)
@@ -14,29 +19,32 @@ abstract class BaseOrderBook(val pair: String, val decimals: Int) : AbstractVert
         val eventBus: EventBus = vertx.eventBus()
         eventBus.consumer(OrderRequest.address(pair)) { message -> handleOrderEvent(message) }
 
-        eventBus.consumer<GetBookRequest>(GetBookRequest.address(pair)) { message ->
+        eventBus.consumer<String>(GetBookRequest.address(pair)) { message ->
             val orderBook = getBook()
-            message.reply(GetBookResponse(orderBook))
+
+            message.reply(GetBookResponse(orderBook).toJson())
         }
 
-        eventBus.consumer<GetTradeHistoryRequest>(GetTradeHistoryRequest.address(pair)) { message ->
-            val request = message.body()
+        eventBus.consumer(GetTradeHistoryRequest.address(pair)) { message ->
+            val request = GetTradeHistoryRequest.fromJson(message.body())
+
             val tradeHistory = getTradeHistory(request.offset, request.limit)
-            message.reply(GetTradeHistoryResponse(tradeHistory))
+            message.reply(GetTradeHistoryResponse(tradeHistory).toJson())
         }
     }
 
-    private fun handleOrderEvent(message: Message<OrderRequest>) {
+    private fun handleOrderEvent(message: Message<String>) {
         try {
-            when (val event = message.body()) {
-                is OrderRequest.CreateLimitOrder -> add(event.limitOrder)
-                is OrderRequest.CreateMarketOrder -> match(event.marketOrder)
+            when (val event = OrderRequest.fromJson(message.body())) {
+                is OrderRequest.CreateLimitOrder -> add(event.order)
+                is OrderRequest.CreateMarketOrder -> match(event.order)
                 is OrderRequest.CancelLimitOrder -> {
-                    val result = remove(event.cancelOrder.orderId)
+                    val result = remove(event.order.orderId)
                     message.reply(result)
                 }
             }
         } catch (e: Exception) {
+            logger.error("Failed handling order event: ", e)
             message.fail(500, "Error processing order event: ${e.message}")
         }
     }

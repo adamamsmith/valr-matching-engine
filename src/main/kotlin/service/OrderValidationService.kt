@@ -1,6 +1,6 @@
 package smith.adam.service
 
-import io.ktor.server.plugins.*
+import io.vertx.ext.web.handler.HttpException
 import smith.adam.orderbook.model.CancelOrder
 import smith.adam.orderbook.model.LimitOrder
 import smith.adam.orderbook.model.MarketOrder
@@ -10,8 +10,7 @@ class OrderValidationService {
     fun validate(marketOrder: MarketOrder, validCurrencyPairs: MutableSet<String>) {
         buildBadRequestException(
             listOf(
-                validateCurrencyPair(marketOrder.pair, validCurrencyPairs),
-                validateMarketOrderAmount(marketOrder)
+                validateCurrencyPair(marketOrder.pair, validCurrencyPairs), validateMarketOrderAmount(marketOrder)
             )
         )
     }
@@ -20,7 +19,10 @@ class OrderValidationService {
         buildBadRequestException(
             listOf(
                 validateCurrencyPair(limitOrder.pair, validCurrencyPairs),
-                validateSide(limitOrder)
+                validateSide(limitOrder),
+                validateAmount("price", limitOrder.price),
+                validateAmount("quoteAmount", limitOrder.quoteAmount)
+
             )
         )
     }
@@ -48,10 +50,14 @@ class OrderValidationService {
 
     private fun validateMarketOrderAmount(marketOrder: MarketOrder): String {
         return when (Side.fromString(marketOrder.side)) {
-            Side.BUY -> if (marketOrder.quoteAmount == null) "quoteAmount must be provided when side is BUY" else ""
-            Side.SELL -> if (marketOrder.baseAmount == null) "baseAmount must be provided when side is SELL" else ""
+            Side.BUY -> validateAmount("quoteAmount", marketOrder.quoteAmount, " when side is BUY")
+            Side.SELL -> validateAmount("baseAmount", marketOrder.quoteAmount, " when side is SELL")
             null -> "Invalid side: ${marketOrder.side}"
         }
+    }
+
+    private fun validateAmount(name: String, amount: Double?, extra: String? = null): String {
+        return if (amount == null || amount <= 0.0) "$name must be non-negative${extra ?: ""}" else ""
     }
 
     private fun validateSide(limitOrder: LimitOrder): String {
@@ -64,10 +70,9 @@ class OrderValidationService {
 
     private fun buildBadRequestException(messages: List<String>) {
         val filteredMessages = messages.filter { it != "" }
-        if (filteredMessages.isNotEmpty()) throw BadRequestException(
-            filteredMessages.joinToString(
-                separator = ". ",
-                postfix = "."
+        if (filteredMessages.isNotEmpty()) throw HttpException(
+            400, filteredMessages.joinToString(
+                separator = ". ", postfix = "."
             )
         )
     }
