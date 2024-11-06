@@ -21,10 +21,9 @@ import smith.adam.service.OrderValidationService
 
 val logger: Logger = LoggerFactory.getLogger("HttpServer")
 
-class HttpServer(private val port: Int) : AbstractVerticle() {
+class HttpServer(private val port: Int, private val validationService: OrderValidationService) : AbstractVerticle() {
     override fun start() {
-        val orderValidationService = OrderValidationService()
-        val orderService = OrderService(vertx, mutableSetOf("BTCUSD", "ETHUSD"), orderValidationService)
+        val orderService = OrderService(vertx, validationService)
 
         val router = configureRouter(vertx, orderService)
         vertx.createHttpServer().requestHandler(router).listen(port) { result ->

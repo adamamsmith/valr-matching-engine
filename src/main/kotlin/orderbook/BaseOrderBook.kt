@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong
 
 val logger: Logger = LoggerFactory.getLogger("BaseOrderBook")
 
-abstract class BaseOrderBook(val pair: String, val decimals: Int) : AbstractVerticle() {
+abstract class BaseOrderBook(val pair: String) : AbstractVerticle() {
     private val sequenceId = AtomicLong(0)
     protected val tradeHistory: MutableList<Trade> = mutableListOf()
 

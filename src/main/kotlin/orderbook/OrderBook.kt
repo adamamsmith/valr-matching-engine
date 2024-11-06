@@ -3,7 +3,7 @@ package smith.adam.orderbook
 import smith.adam.orderbook.model.*
 import smith.adam.orderbook.tree.RedBlackTree
 
-class OrderBook(pair: String, decimals: Int) : BaseOrderBook(pair, decimals) {
+class OrderBook(pair: String) : BaseOrderBook(pair) {
     private var bids: RedBlackTree<Level> = RedBlackTree()
     private var asks: RedBlackTree<Level> = RedBlackTree()
     private var bestBid: RedBlackTree.Node<Level>? = null

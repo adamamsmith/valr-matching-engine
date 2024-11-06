@@ -6,7 +6,7 @@ import smith.adam.orderbook.model.Side
 import smith.adam.orderbook.model.Trade
 import java.util.*
 
-class SimpleOrderBook(pair: String, decimals: Int) : BaseOrderBook(pair, decimals) {
+class SimpleOrderBook(pair: String) : BaseOrderBook(pair) {
     private val bids: TreeSet<LimitOrder> =
         TreeSet<LimitOrder>(compareByDescending<LimitOrder> { it.price }.thenBy { it.timestamp })
     private val asks: TreeSet<LimitOrder> =

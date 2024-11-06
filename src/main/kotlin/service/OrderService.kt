@@ -11,29 +11,28 @@ import java.util.*
 
 class OrderService(
     vertx: Vertx,
-    private var orderBookIdentifiers: MutableSet<String>,
     private val orderValidationService: OrderValidationService
 ) {
     private val eventBus: EventBus = vertx.eventBus()
 
     fun placeMarketOrder(marketOrder: MarketOrder): String {
-        orderValidationService.validate(marketOrder, orderBookIdentifiers)
+        orderValidationService.validate(marketOrder)
         return eventBus.sendOrder(marketOrder)
     }
 
     fun placeLimitOrder(limitOrder: LimitOrder): String {
-        orderValidationService.validate(limitOrder, orderBookIdentifiers)
+        orderValidationService.validate(limitOrder)
         return eventBus.sendOrder(limitOrder)
     }
 
     fun cancelLimitOrder(cancelOrder: CancelOrder): Future<Boolean> {
-        orderValidationService.validate(cancelOrder, orderBookIdentifiers)
+        orderValidationService.validate(cancelOrder)
         return eventBus.requestCancelOrder(cancelOrder).future()
     }
 
     fun getBook(currencyPair: String?): Future<Map<String, List<LimitOrder>>> {
         val promise = Promise.promise<Map<String, List<LimitOrder>>>()
-        orderValidationService.validate(currencyPair, orderBookIdentifiers)
+        orderValidationService.validate(currencyPair)
         eventBus.request(GetBookRequest.address(currencyPair!!), GetBookRequest().toJson()) { reply ->
             if (reply.succeeded()) {
                 promise.complete(GetBookResponse.fromJson(reply.result().body()).orderBook)
@@ -46,7 +45,7 @@ class OrderService(
 
     fun getTradeHistory(currencyPair: String?, offset: Int, limit: Int): Future<List<Trade>> {
         val promise = Promise.promise<List<Trade>>()
-        orderValidationService.validate(currencyPair, orderBookIdentifiers)
+        orderValidationService.validate(currencyPair)
 
         eventBus.request(
             GetTradeHistoryRequest.address(currencyPair!!),

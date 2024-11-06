@@ -1,25 +1,39 @@
 package smith.adam
 
+import com.charleskorn.kaml.Yaml
 import io.vertx.core.DeploymentOptions
 import io.vertx.core.Vertx
 import io.vertx.core.impl.logging.Logger
 import io.vertx.core.impl.logging.LoggerFactory
+import smith.adam.model.Config
 import smith.adam.orderbook.BaseOrderBook
 import smith.adam.orderbook.OrderBook
-import smith.adam.orderbook.SimpleOrderBook
 import smith.adam.server.HttpServer
+import smith.adam.service.OrderValidationService
+import java.io.FileNotFoundException
 
 val logger: Logger = LoggerFactory.getLogger("Main")
 
 fun main() {
     val vertx = Vertx.vertx()
-    val btcOrderBook = OrderBook("BTCUSD", 2)
-    val ethOrderBook = SimpleOrderBook("ETHUSD", 6)
 
-    deployOrderBookVerticle(vertx, btcOrderBook)
-    deployOrderBookVerticle(vertx, ethOrderBook)
+    val classLoader = Thread.currentThread().contextClassLoader
+    val inputStream = classLoader.getResourceAsStream("config.yaml")
+        ?: throw FileNotFoundException("config.yaml not found in resources")
+    val configFile = inputStream.bufferedReader().use { it.readText() }
 
-    vertx.deployVerticle(HttpServer(port = 8080), DeploymentOptions()) { result ->
+    val config = Yaml.default.decodeFromString(Config.serializer(), configFile)
+    val pairs = mutableSetOf<String>()
+
+    config.orderbooks.forEach { pair ->
+        pairs.add(pair)
+        val orderBook = OrderBook(pair)
+        deployOrderBookVerticle(vertx, orderBook)
+    }
+
+    val validationService = OrderValidationService(pairs)
+
+    vertx.deployVerticle(HttpServer(config.server.port, validationService), DeploymentOptions()) { result ->
         if (result.succeeded()) {
             logger.info("HttpServer deployed successfully.")
         } else {

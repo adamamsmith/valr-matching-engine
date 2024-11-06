@@ -6,19 +6,19 @@ import smith.adam.orderbook.model.LimitOrder
 import smith.adam.orderbook.model.MarketOrder
 import smith.adam.orderbook.model.Side
 
-class OrderValidationService {
-    fun validate(marketOrder: MarketOrder, validCurrencyPairs: MutableSet<String>) {
+class OrderValidationService(private val validCurrencyPairs: MutableSet<String>) {
+    fun validate(marketOrder: MarketOrder) {
         buildBadRequestException(
             listOf(
-                validateCurrencyPair(marketOrder.pair, validCurrencyPairs), validateMarketOrderAmount(marketOrder)
+                validateCurrencyPair(marketOrder.pair), validateMarketOrderAmount(marketOrder)
             )
         )
     }
 
-    fun validate(limitOrder: LimitOrder, validCurrencyPairs: MutableSet<String>) {
+    fun validate(limitOrder: LimitOrder) {
         buildBadRequestException(
             listOf(
-                validateCurrencyPair(limitOrder.pair, validCurrencyPairs),
+                validateCurrencyPair(limitOrder.pair),
                 validateSide(limitOrder),
                 validateAmount("price", limitOrder.price),
                 validateAmount("quoteAmount", limitOrder.quoteAmount)
@@ -27,23 +27,23 @@ class OrderValidationService {
         )
     }
 
-    fun validate(cancelOrder: CancelOrder, validCurrencyPairs: MutableSet<String>) {
+    fun validate(cancelOrder: CancelOrder) {
         buildBadRequestException(
             listOf(
-                validateCurrencyPair(cancelOrder.pair, validCurrencyPairs)
+                validateCurrencyPair(cancelOrder.pair)
             )
         )
     }
 
-    fun validate(currencyPair: String?, validCurrencyPairs: MutableSet<String>) {
+    fun validate(currencyPair: String?) {
         buildBadRequestException(
             listOf(
-                validateCurrencyPair(currencyPair, validCurrencyPairs)
+                validateCurrencyPair(currencyPair)
             )
         )
     }
 
-    private fun validateCurrencyPair(currencyPair: String?, validCurrencyPairs: MutableSet<String>): String {
+    private fun validateCurrencyPair(currencyPair: String?): String {
         if (currencyPair == null) return "Market must be provided"
         return if (currencyPair !in validCurrencyPairs) "Market does not exist for pair $currencyPair" else ""
     }
