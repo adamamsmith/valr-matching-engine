@@ -1,13 +1,9 @@
 package smith.adam.orderbook.model
 
-import io.vertx.core.impl.logging.Logger
-import io.vertx.core.impl.logging.LoggerFactory
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
-
-val logger: Logger = LoggerFactory.getLogger("OrderBookMessages")
 
 private const val BASE_ADDRESS = "orderbook"
 

@@ -27,8 +27,16 @@ class SimpleOrderBook(pair: String, decimals: Int) : BaseOrderBook(pair, decimal
 
     override fun add(limitOrder: LimitOrder) {
         if (limitOrder.side == "BUY") {
+            if (asks.first != null && limitOrder.price >= asks.first.price) {
+                limitOrder.quantity = match(limitOrder)
+            }
+
             bids.add(limitOrder)
         } else {
+            if (bids.first != null && limitOrder.price <= bids.first.price) {
+                limitOrder.quantity = match(limitOrder)
+            }
+
             asks.add(limitOrder)
         }
     }

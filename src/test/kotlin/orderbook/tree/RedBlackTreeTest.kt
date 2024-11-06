@@ -6,7 +6,7 @@ import smith.adam.orderbook.tree.RedBlackTree
 
 class RedBlackTreeTest {
 
-    fun <T: Comparable<T>> iteratorPrinter(it: Iterator<RedBlackTree.Node<T>>) {
+    private fun <T: Comparable<T>> iteratorPrinter(it: Iterator<RedBlackTree.Node<T>>) {
         while (it.hasNext()) {
             print("" + it.next().data + " ")
         }

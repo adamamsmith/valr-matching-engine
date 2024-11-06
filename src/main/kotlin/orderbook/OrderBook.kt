@@ -26,7 +26,9 @@ class OrderBook(pair: String, decimals: Int) : BaseOrderBook(pair, decimals) {
     }
 
     override fun add(limitOrder: LimitOrder) {
-        // Check if limit order crossing bid ask spread
+        if (crossingBidAsk(limitOrder)) {
+            limitOrder.quantity = match(limitOrder)
+        }
 
         if (limitOrder.price !in levelNodes) {
             when (Side.fromString(limitOrder.side)) {
@@ -180,5 +182,13 @@ class OrderBook(pair: String, decimals: Int) : BaseOrderBook(pair, decimals) {
             }
         }
         levelNodes.remove(price)
+    }
+
+    private fun crossingBidAsk(limitOrder: LimitOrder): Boolean {
+        return when (Side.fromString(limitOrder.side)) {
+            Side.BUY -> bestAsk != null && (limitOrder.price >= bestAsk!!.data.price)
+            Side.SELL -> bestBid != null && (limitOrder.price <= bestBid!!.data.price)
+            else -> false
+        }
     }
 }
