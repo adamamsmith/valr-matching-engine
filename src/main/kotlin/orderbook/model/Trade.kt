@@ -8,7 +8,7 @@ data class Trade(
     val price: Double,
     val quantity: Double,
     val currencyPair: String,
-    val tradedAt: String,
+    val tradedAt: Long,
     val takerSide: String,
     val sequenceId: Long,
     val quoteVolume: Double

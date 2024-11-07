@@ -5,6 +5,7 @@ import io.vertx.core.Promise
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
 import io.vertx.ext.web.handler.HttpException
+import io.vertx.kotlin.coroutines.await
 import kotlinx.serialization.json.Json
 import smith.adam.orderbook.model.*
 import java.util.*
@@ -15,14 +16,14 @@ class OrderService(
 ) {
     private val eventBus: EventBus = vertx.eventBus()
 
-    fun placeMarketOrder(marketOrder: MarketOrder): String {
+    fun placeMarketOrder(marketOrder: MarketOrder): Future<String> {
         orderValidationService.validate(marketOrder)
-        return eventBus.sendOrder(marketOrder)
+        return eventBus.sendOrder(marketOrder).future()
     }
 
-    fun placeLimitOrder(limitOrder: LimitOrder): String {
+    fun placeLimitOrder(limitOrder: LimitOrder): Future<String> {
         orderValidationService.validate(limitOrder)
-        return eventBus.sendOrder(limitOrder)
+        return eventBus.sendOrder(limitOrder).future()
     }
 
     fun cancelLimitOrder(cancelOrder: CancelOrder): Future<Boolean> {
@@ -60,20 +61,23 @@ class OrderService(
         return promise.future()
     }
 
-    private fun EventBus.sendOrder(order: BaseOrder): String {
-        val orderId = UUID.randomUUID().toString()
-        when (order) {
-            is MarketOrder -> this.send(
-                OrderRequest.address(order.pair),
-                OrderRequest.CreateMarketOrder(order.copy(id = orderId)).toJson()
-            )
-
-            is LimitOrder -> this.send(
-                OrderRequest.address(order.pair),
-                OrderRequest.CreateLimitOrder(order.copy(id = orderId)).toJson()
-            )
+    private fun EventBus.sendOrder(order: BaseOrder): Promise<String> {
+        val promise = Promise.promise<String>()
+        val orderRequest = when (order) {
+            is MarketOrder -> OrderRequest.CreateMarketOrder(order)
+            is LimitOrder -> OrderRequest.CreateLimitOrder(order)
+            else -> throw IllegalArgumentException("Unsupported order type")
         }
-        return orderId
+
+        this.request(OrderRequest.address(order.pair), orderRequest.toJson()) { reply ->
+            if (reply.succeeded()) {
+                promise.complete(reply.result().body())
+            } else {
+                promise.fail(reply.cause())
+            }
+        }
+
+        return promise
     }
 
     private fun EventBus.requestCancelOrder(order: CancelOrder): Promise<Boolean> {

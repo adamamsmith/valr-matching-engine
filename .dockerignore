@@ -1,0 +1,15 @@
+.git/
+.gitignore
+.gradle/
+gradle/
+.kotlin/
+build/
+out/
+**/build/
+**/out/
+*.env
+*.iml
+.idea/
+*.log
+*.swp
+.DS_Store

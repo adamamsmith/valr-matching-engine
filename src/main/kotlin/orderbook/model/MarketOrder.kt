@@ -5,7 +5,7 @@ import kotlinx.serialization.Transient
 
 @Serializable
 data class MarketOrder(
-    override val id: String? = null,
+    @Transient override val id: String? = null,
     override val side: String,
     override val baseAmount: Double? = null,
     override val quoteAmount: Double? = null,

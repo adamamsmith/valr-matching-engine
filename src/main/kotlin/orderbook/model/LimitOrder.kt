@@ -6,7 +6,7 @@ import smith.adam.orderbook.tree.RedBlackTree
 
 @Serializable
 data class LimitOrder(
-    override val id: String? = null,
+    @Transient override val id: String? = null,
     override val side: String,
     var quantity: Double,
     override val price: Double,

@@ -7,6 +7,7 @@ import io.vertx.core.impl.logging.Logger
 import io.vertx.core.impl.logging.LoggerFactory
 import kotlinx.serialization.json.JsonObject
 import smith.adam.orderbook.model.*
+import java.util.*
 import java.util.concurrent.atomic.AtomicLong
 
 val logger: Logger = LoggerFactory.getLogger("BaseOrderBook")
@@ -36,8 +37,20 @@ abstract class BaseOrderBook(val pair: String) : AbstractVerticle() {
     private fun handleOrderEvent(message: Message<String>) {
         try {
             when (val event = OrderRequest.fromJson(message.body())) {
-                is OrderRequest.CreateLimitOrder -> add(event.order)
-                is OrderRequest.CreateMarketOrder -> match(event.order)
+                is OrderRequest.CreateLimitOrder -> {
+                    val orderId = generateOrderId()
+                    val order = event.order.copy(id = orderId)
+                    message.reply(orderId)
+
+                    add(order)
+                }
+                is OrderRequest.CreateMarketOrder -> {
+                    val orderId = generateOrderId()
+                    val order = event.order.copy(id = orderId)
+                    message.reply(orderId)
+
+                    match(order)
+                }
                 is OrderRequest.CancelLimitOrder -> {
                     val result = remove(event.order.orderId)
                     message.reply(result)
@@ -47,6 +60,10 @@ abstract class BaseOrderBook(val pair: String) : AbstractVerticle() {
             logger.error("Failed handling order event: ", e)
             message.fail(500, "Error processing order event: ${e.message}")
         }
+    }
+
+    private fun generateOrderId(): String {
+        return UUID.randomUUID().toString()
     }
 
     abstract fun getBook(): Map<String, List<LimitOrder>>
@@ -65,16 +82,18 @@ abstract class BaseOrderBook(val pair: String) : AbstractVerticle() {
         totalOrderAmount: Double,
         remainingQuantity: Double
     ) {
-        val trade = Trade(
-            id = "${order.id}",
-            currencyPair = order.pair,
-            price = weightedAveragePrice,
-            quantity = totalOrderAmount - remainingQuantity,
-            tradedAt = "${System.currentTimeMillis()}",
-            takerSide = "BUY",
-            sequenceId = sequenceId.getAndIncrement(),
-            quoteVolume = totalOrderAmount - remainingQuantity
-        )
-        tradeHistory.addFirst(trade)
+        if (totalOrderAmount - remainingQuantity > 0) {
+            val trade = Trade(
+                id = "${order.id}",
+                currencyPair = order.pair,
+                price = weightedAveragePrice,
+                quantity = totalOrderAmount - remainingQuantity,
+                tradedAt = System.currentTimeMillis(),
+                takerSide = order.side,
+                sequenceId = sequenceId.getAndIncrement(),
+                quoteVolume = totalOrderAmount - remainingQuantity
+            )
+            tradeHistory.addFirst(trade)
+        }
     }
 }

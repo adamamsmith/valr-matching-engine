@@ -42,16 +42,28 @@ class HttpServer(private val port: Int, private val validationService: OrderVali
         router.post("/orders/market").handler { ctx ->
             handleRequest(ctx) {
                 val marketOrderRequest = Json.decodeFromString<MarketOrder>(ctx.body().asString())
-                val orderId = orderService.placeMarketOrder(marketOrderRequest)
-                ctx.response().setStatusCode(201).end(Json.encodeToString(serializer(), OrderResponse(orderId)))
+                orderService.placeMarketOrder(marketOrderRequest).onComplete { result ->
+                    if (result.succeeded()) {
+                        ctx.response().setStatusCode(201)
+                            .end(Json.encodeToString(serializer(), OrderResponse(result.result())))
+                    } else {
+                        buildErrorResponse(ctx, 500)
+                    }
+                }
             }
         }
 
         router.post("/orders/limit").handler { ctx ->
             handleRequest(ctx) {
                 val limitOrderRequest = Json.decodeFromString<LimitOrder>(ctx.body().asString())
-                val orderId = orderService.placeLimitOrder(limitOrderRequest)
-                ctx.response().setStatusCode(201).end(Json.encodeToString(serializer(), OrderResponse(orderId)))
+                orderService.placeLimitOrder(limitOrderRequest).onComplete { result ->
+                    if (result.succeeded()) {
+                        ctx.response().setStatusCode(201)
+                            .end(Json.encodeToString(serializer(), OrderResponse(result.result())))
+                    } else {
+                        buildErrorResponse(ctx, 500)
+                    }
+                }
             }
         }
 

@@ -51,7 +51,7 @@ class OrderValidationService(private val validCurrencyPairs: MutableSet<String>)
     private fun validateMarketOrderAmount(marketOrder: MarketOrder): String {
         return when (Side.fromString(marketOrder.side)) {
             Side.BUY -> validateAmount("quoteAmount", marketOrder.quoteAmount, " when side is BUY")
-            Side.SELL -> validateAmount("baseAmount", marketOrder.quoteAmount, " when side is SELL")
+            Side.SELL -> validateAmount("baseAmount", marketOrder.baseAmount, " when side is SELL")
             null -> "Invalid side: ${marketOrder.side}"
         }
     }
