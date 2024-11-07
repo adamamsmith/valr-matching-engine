@@ -112,7 +112,7 @@ class OrderBook(pair: String) : BaseOrderBook(pair) {
                 }
 
             } else {
-                deleteLevel(node, price = node.data.price)
+                deleteLevel(node)
             }
         }
 
@@ -127,7 +127,7 @@ class OrderBook(pair: String) : BaseOrderBook(pair) {
         val node = levelNodes[order.price]!!
 
         if (node.data.size == 1) {
-            deleteLevel(level = node, price = order.price)
+            deleteLevel(level = node)
             return true
         }
 
@@ -147,7 +147,7 @@ class OrderBook(pair: String) : BaseOrderBook(pair) {
         return true
     }
 
-    private fun deleteLevel(level: RedBlackTree.Node<Level>, price: Double) {
+    private fun deleteLevel(level: RedBlackTree.Node<Level>) {
         val it = level.data.orderIterator()
         while (it.hasNext()) {
             val order = it.next()
@@ -156,32 +156,51 @@ class OrderBook(pair: String) : BaseOrderBook(pair) {
 
         when (level.data.side) {
             Side.BUY -> {
-                if (bestBid == level) {
-                    bestBid = level.parent
-                }
+                updateBestLevel(level)
 
                 val deletedNode = bids.delete(level)
                 // This handles the case of when deleting a node with two children the node.data is overridden with a
                 // deletionNode.data and then the deletion node is the actual node to be deleted, so the levelNodes
                 // map has to be updated.
-                if (deletedNode.data.price != price) {
+                if (deletedNode.data.price != level.data.price) {
                     levelNodes[deletedNode.data.price] = level
                 }
             }
 
             Side.SELL -> {
-                if (bestAsk == level) {
-                    bestAsk = level.parent
-                }
+                updateBestLevel(level)
 
                 val deletedNode = asks.delete(level)
                 // This is again handling of the special case. See above comment on BUY side.
-                if (deletedNode.data.price != price) {
+                if (deletedNode.data.price != level.data.price) {
                     levelNodes[deletedNode.data.price] = level
                 }
             }
         }
-        levelNodes.remove(price)
+        levelNodes.remove(level.data.price)
+    }
+
+    private fun updateBestLevel(node: RedBlackTree.Node<Level>) {
+        when (node.data.side) {
+            Side.BUY -> {
+                if (node == bestBid) {
+                    val it = bids.iteratorFromNode(node)
+                    // We call it.next() as the first element returned by the iterator will always be the node that is
+                    // passed in.
+                    it.next()
+                    bestBid = if (it.hasNext()) it.next() else null
+                }
+            }
+            Side.SELL -> {
+                if (node == bestAsk) {
+                    val it = asks.iteratorFromNode(node)
+                    // We call it.next() as the first element returned by the iterator will always be the node that is
+                    // passed in.
+                    it.next()
+                    bestAsk = if (it.hasNext()) it.next() else null
+                }
+            }
+        }
     }
 
     private fun crossingBidAsk(limitOrder: LimitOrder): Boolean {

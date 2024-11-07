@@ -5,11 +5,10 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import smith.adam.orderbook.OrderBook
-import kotlin.math.abs
 
 class OrderBookTest {
-    private val simpleOrderBook = smith.adam.orderbook.SimpleOrderBook("BTCUSD", 2)
-    private val orderBook = OrderBook("BTCUSD", 2)
+    private val simpleOrderBook = smith.adam.orderbook.SimpleOrderBook("BTCUSD")
+    private val orderBook = OrderBook("BTCUSD")
 
     private val defaultBids =
         (1..20).associateWith { i -> createDefaultLimitOrder(id = "$i", price = i.toDouble()) }.toMutableMap()
@@ -22,8 +21,8 @@ class OrderBookTest {
 
     @BeforeEach
     fun setUp() {
-        ordersToPlace.map { i -> simpleOrderBook.placeLimitOrder(if (i < 0) defaultAsks[abs(i)]!! else defaultBids[i]!!) }
-        ordersToPlace.map { i -> orderBook.placeLimitOrder(if (i < 0) defaultAsks[abs(i)]!! else defaultBids[i]!!) }
+//        ordersToPlace.map { i -> simpleOrderBook.placeLimitOrder(if (i < 0) defaultAsks[abs(i)]!! else defaultBids[i]!!) }
+//        ordersToPlace.map { i -> orderBook.placeLimitOrder(if (i < 0) defaultAsks[abs(i)]!! else defaultBids[i]!!) }
 
         // TODO: There must be a better way to do this
         Thread.sleep(10)
