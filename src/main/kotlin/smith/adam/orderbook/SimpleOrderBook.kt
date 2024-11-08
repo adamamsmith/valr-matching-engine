@@ -19,12 +19,6 @@ class SimpleOrderBook(pair: String) : BaseOrderBook(pair) {
         )
     }
 
-    override fun getTradeHistory(offset: Int, limit: Int): List<Trade> {
-        return tradeHistory
-            .drop(offset)
-            .take(limit)
-    }
-
     override fun add(limitOrder: LimitOrder) {
         if (limitOrder.side == "BUY") {
             if (asks.first != null && limitOrder.price >= asks.first.price) {

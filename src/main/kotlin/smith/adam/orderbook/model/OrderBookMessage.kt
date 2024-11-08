@@ -5,7 +5,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
 
-private const val BASE_ADDRESS = "orderbook"
+private const val BASE_ADDRESS = "smith/adam/orderbookm/orderbook"
 
 interface JsonSerializable {
     fun toJson(): String

@@ -1,13 +1,12 @@
-package orderbook
+package smith.adam.orderbook
 
-import orderbook.model.createDefaultLimitOrder
+import smith.adam.orderbook.model.createDefaultLimitOrder
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import smith.adam.orderbook.OrderBook
 
 class OrderBookTest {
-    private val simpleOrderBook = smith.adam.orderbook.SimpleOrderBook("BTCUSD")
+    private val simpleOrderBook = SimpleOrderBook("BTCUSD")
     private val orderBook = OrderBook("BTCUSD")
 
     private val defaultBids =

@@ -1,7 +1,4 @@
-package orderbook.model
-
-import smith.adam.orderbook.model.CancelOrder
-import smith.adam.orderbook.model.LimitOrder
+package smith.adam.orderbook.model
 
 fun createDefaultLimitOrder(
     id: String? = null,

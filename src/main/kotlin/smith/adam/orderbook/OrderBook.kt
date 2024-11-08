@@ -19,12 +19,6 @@ class OrderBook(pair: String) : BaseOrderBook(pair) {
         )
     }
 
-    override fun getTradeHistory(offset: Int, limit: Int): List<Trade> {
-        return tradeHistory
-            .drop(offset)
-            .take(limit)
-    }
-
     override fun add(limitOrder: LimitOrder) {
         if (crossingBidAsk(limitOrder)) {
             limitOrder.quantity = match(limitOrder)
@@ -156,31 +150,31 @@ class OrderBook(pair: String) : BaseOrderBook(pair) {
 
         when (level.data.side) {
             Side.BUY -> {
-                updateBestLevel(level)
+                setToNextBestLevel(level)
 
-                val deletedNode = bids.delete(level)
+                val node = bids.delete(level)
                 // This handles the case of when deleting a node with two children the node.data is overridden with a
                 // deletionNode.data and then the deletion node is the actual node to be deleted, so the levelNodes
                 // map has to be updated.
-                if (deletedNode.data.price != level.data.price) {
-                    levelNodes[deletedNode.data.price] = level
+                if (node.data.price != level.data.price) {
+                    levelNodes[node.data.price] = level
                 }
             }
 
             Side.SELL -> {
-                updateBestLevel(level)
+                setToNextBestLevel(level)
 
-                val deletedNode = asks.delete(level)
+                val node = asks.delete(level)
                 // This is again handling of the special case. See above comment on BUY side.
-                if (deletedNode.data.price != level.data.price) {
-                    levelNodes[deletedNode.data.price] = level
+                if (node.data.price != level.data.price) {
+                    levelNodes[node.data.price] = level
                 }
             }
         }
         levelNodes.remove(level.data.price)
     }
 
-    private fun updateBestLevel(node: RedBlackTree.Node<Level>) {
+    private fun setToNextBestLevel(node: RedBlackTree.Node<Level>) {
         when (node.data.side) {
             Side.BUY -> {
                 if (node == bestBid) {

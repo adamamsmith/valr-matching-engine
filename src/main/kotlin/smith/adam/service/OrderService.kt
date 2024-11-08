@@ -4,11 +4,7 @@ import io.vertx.core.Future
 import io.vertx.core.Promise
 import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
-import io.vertx.ext.web.handler.HttpException
-import io.vertx.kotlin.coroutines.await
-import kotlinx.serialization.json.Json
 import smith.adam.orderbook.model.*
-import java.util.*
 
 class OrderService(
     vertx: Vertx,

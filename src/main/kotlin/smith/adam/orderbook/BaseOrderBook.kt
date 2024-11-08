@@ -5,7 +5,6 @@ import io.vertx.core.eventbus.EventBus
 import io.vertx.core.eventbus.Message
 import io.vertx.core.impl.logging.Logger
 import io.vertx.core.impl.logging.LoggerFactory
-import kotlinx.serialization.json.JsonObject
 import smith.adam.orderbook.model.*
 import java.util.*
 import java.util.concurrent.atomic.AtomicLong
@@ -68,7 +67,11 @@ abstract class BaseOrderBook(val pair: String) : AbstractVerticle() {
 
     abstract fun getBook(): Map<String, List<LimitOrder>>
 
-    abstract fun getTradeHistory(offset: Int, limit: Int): List<Trade>
+    private fun getTradeHistory(offset: Int, limit: Int): List<Trade> {
+        return tradeHistory
+            .drop(offset)
+            .take(limit)
+    }
 
     protected abstract fun add(limitOrder: LimitOrder)
 

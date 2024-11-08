@@ -12,17 +12,9 @@ class RedBlackTree<T : Comparable<T>> {
         var left: Node<T>? = null
         var right: Node<T>? = null
         var parent: Node<T>? = null
-
-        fun isOnLeft(): Boolean {
-            return this.parent?.left == this
-        }
-
-        fun isOnRight(): Boolean {
-            return this.parent?.right == this
-        }
     }
 
-    private var root: Node<T>? = null
+    var root: Node<T>? = null
 
     fun add(data: T): Node<T> {
         val newNode = Node(data, Colour.RED)
@@ -32,9 +24,10 @@ class RedBlackTree<T : Comparable<T>> {
     }
 
     fun delete(node: Node<T>): Node<T> {
-        val deletedNode = deleteNode(node)
-        fixDelete(deletedNode)
-
+        val (replacementNode, requireFix) = deleteNode(node)
+        if (requireFix) {
+            fixDelete(replacementNode)
+        }
         return node
     }
 
@@ -93,11 +86,11 @@ class RedBlackTree<T : Comparable<T>> {
 
             private fun updateCurrentTraversalRoot(reverse: Boolean = false) {
                 if (reverse) {
-                    while (currentTraversalRoot != null && currentTraversalRoot!!.isOnLeft()) {
+                    while (currentTraversalRoot != null && currentTraversalRoot!!.parent?.left == currentTraversalRoot) {
                         currentTraversalRoot = currentTraversalRoot!!.parent
                     }
                 } else {
-                    while (currentTraversalRoot != null && currentTraversalRoot!!.isOnRight()) {
+                    while (currentTraversalRoot != null && currentTraversalRoot!!.parent?.right == currentTraversalRoot) {
                         currentTraversalRoot = currentTraversalRoot!!.parent
                     }
                 }
@@ -112,24 +105,6 @@ class RedBlackTree<T : Comparable<T>> {
 
     fun <U> toList(mutator: (T) -> List<U>, reverse: Boolean = false): List<U> {
         return traverse(root, mutator = mutator, reverse = reverse)
-    }
-
-    fun visualizeTree() {
-        if (root == null) {
-            println("The tree is empty.")
-            return
-        }
-        printTree(root, "", true)
-    }
-
-    private fun printTree(node: Node<T>?, indent: String, isRight: Boolean) {
-        if (node == null) return
-
-        println(indent + (if (isRight) "└── " else "├── ") + "${node.data} (${node.colour})")
-
-        val childIndent = indent + if (isRight) "    " else "│   "
-        printTree(node.right, childIndent, false)
-        printTree(node.left, childIndent, true)
     }
 
     private fun insertNode(root: Node<T>?, newNode: Node<T>): Node<T> {
@@ -152,7 +127,7 @@ class RedBlackTree<T : Comparable<T>> {
             val parent = currentNode.parent!!
             val grandparent = parent.parent
 
-            if (parent.isOnLeft()) {
+            if (parent.parent?.left == parent) {
                 val uncle = grandparent!!.right
 
                 if (uncle?.colour == Colour.RED) {
@@ -161,15 +136,15 @@ class RedBlackTree<T : Comparable<T>> {
                     grandparent.colour = Colour.RED
                     currentNode = grandparent
                 } else {
-                    if (currentNode == parent.right) {
+                    if (currentNode.parent?.right == currentNode) {
                         rotateLeft(parent)
                         currentNode = parent
                     }
                     rotateRight(grandparent)
-                    parent.colour = Colour.BLACK
+                    currentNode.parent?.colour = Colour.BLACK
                     grandparent.colour = Colour.RED
                 }
-            } else if (parent.isOnRight()) {
+            } else if (parent.parent?.right == parent) {
                 val uncle = grandparent!!.left
 
                 if (uncle?.colour == Colour.RED) {
@@ -178,12 +153,12 @@ class RedBlackTree<T : Comparable<T>> {
                     grandparent.colour = Colour.RED
                     currentNode = grandparent
                 } else {
-                    if (currentNode == parent.left) {
+                    if (currentNode.parent?.left == currentNode) {
                         rotateRight(parent)
                         currentNode = parent
                     }
                     rotateLeft(grandparent)
-                    parent.colour = Colour.BLACK
+                    currentNode.parent?.colour = Colour.BLACK
                     grandparent.colour = Colour.RED
                 }
             }
@@ -192,95 +167,82 @@ class RedBlackTree<T : Comparable<T>> {
         root?.colour = Colour.BLACK
     }
 
-    private fun deleteNode(node: Node<T>): Node<T> {
-        val deletedNode: Node<T>?
+    private fun deleteNode(node: Node<T>): Pair<Node<T>?, Boolean> {
+        val nodeToRemove: Node<T>?
 
         if (node.left == null || node.right == null) {
-            deletedNode = node
+            nodeToRemove = node
         } else {
-            deletedNode = minimum(node.right!!)
-            node.data = deletedNode.data
+            nodeToRemove = minimum(node.right!!)
+            node.data = nodeToRemove.data
         }
 
-        val child: Node<T>? = if (deletedNode.left != null) {
-            deletedNode.left
+        val replacement: Node<T>? = if (nodeToRemove.left != null) {
+            nodeToRemove.left
         } else {
-            deletedNode.right
+            nodeToRemove.right
         }
 
-        if (child != null) {
-            child.parent = deletedNode.parent
-        }
+        transplant(node = nodeToRemove, replacement = replacement)
 
-        if (deletedNode.parent == null) {
-            root = child
-        } else if (deletedNode.isOnLeft()) {
-            deletedNode.parent!!.left = child
-        } else {
-            deletedNode.parent!!.right = child
-        }
-
-        return deletedNode
+        val requireFix = nodeToRemove.colour == Colour.BLACK
+        return Pair(replacement, requireFix)
     }
 
-    private fun fixDelete(node: Node<T>) {
+    private fun fixDelete(node: Node<T>?) {
         var currentNode = node
-        while (currentNode != root && currentNode.colour == Colour.BLACK) {
-            if (currentNode.isOnLeft()) {
+        while (currentNode != root && currentNode?.colour == Colour.BLACK) {
+            if (currentNode.parent?.left == currentNode) {
                 var sibling = currentNode.parent!!.right
-                if (sibling!!.colour == Colour.RED) {
+                if (sibling?.colour == Colour.RED) {
                     sibling.colour = Colour.BLACK
                     currentNode.parent!!.colour = Colour.RED
                     rotateLeft(currentNode.parent)
                     sibling = currentNode.parent!!.right
                 }
-                if ((sibling!!.left == null || sibling.left!!.colour == Colour.BLACK) &&
-                    (sibling.right == null || sibling.right!!.colour == Colour.BLACK)
-                ) {
-                    sibling.colour = Colour.RED
+                if ((sibling?.left?.colour != Colour.RED) && (sibling?.right?.colour != Colour.RED)) {
+                    sibling?.colour = Colour.RED
                     currentNode = currentNode.parent!!
                 } else {
-                    if (sibling.right == null || sibling.right!!.colour == Colour.BLACK) {
-                        sibling.left!!.colour = Colour.BLACK
+                    if (sibling.right?.colour != Colour.RED) {
+                        sibling.left?.colour = Colour.BLACK
                         sibling.colour = Colour.RED
                         rotateRight(sibling)
                         sibling = currentNode.parent!!.right
                     }
-                    sibling!!.colour = currentNode.parent!!.colour
+                    sibling?.colour = currentNode.parent!!.colour
                     currentNode.parent!!.colour = Colour.BLACK
-                    sibling.right!!.colour = Colour.BLACK
+                    sibling?.right?.colour = Colour.BLACK
                     rotateLeft(currentNode.parent)
                     currentNode = root!!
                 }
             } else {
                 var sibling = currentNode.parent!!.left
-                if (sibling!!.colour == Colour.RED) {
+                if (sibling?.colour == Colour.RED) {
                     sibling.colour = Colour.BLACK
                     currentNode.parent!!.colour = Colour.RED
                     rotateRight(currentNode.parent)
                     sibling = currentNode.parent!!.left
                 }
-                if ((sibling!!.right == null || sibling.right!!.colour == Colour.BLACK) &&
-                    (sibling.left == null || sibling.left!!.colour == Colour.BLACK)
-                ) {
-                    sibling.colour = Colour.RED
+                if ((sibling?.right?.colour != Colour.RED) && (sibling?.left?.colour != Colour.RED)) {
+                    sibling?.colour = Colour.RED
                     currentNode = currentNode.parent!!
                 } else {
-                    if (sibling.left == null || sibling.left!!.colour == Colour.BLACK) {
-                        sibling.right!!.colour = Colour.BLACK
+                    if (sibling.left?.colour != Colour.RED) {
+                        sibling.right?.colour = Colour.BLACK
                         sibling.colour = Colour.RED
                         rotateLeft(sibling)
                         sibling = currentNode.parent!!.left
                     }
-                    sibling!!.colour = currentNode.parent!!.colour
+                    sibling?.colour = currentNode.parent!!.colour
                     currentNode.parent!!.colour = Colour.BLACK
-                    sibling.left!!.colour = Colour.BLACK
+                    sibling?.left?.colour = Colour.BLACK
                     rotateRight(currentNode.parent)
                     currentNode = root!!
                 }
             }
         }
-        currentNode.colour = Colour.BLACK
+        currentNode?.colour = Colour.BLACK
     }
 
     private fun minimum(node: Node<T>): Node<T> {
@@ -289,6 +251,15 @@ class RedBlackTree<T : Comparable<T>> {
             temp = temp.left!!
         }
         return temp
+    }
+
+    private fun transplant(node: Node<T>?, replacement: Node<T>?) {
+        replacement?.parent = node?.parent
+        when {
+            node?.parent == null -> root = replacement
+            node.parent?.left == node -> node.parent?.left = replacement
+            else -> node.parent?.right = replacement
+        }
     }
 
     private fun rotateLeft(node: Node<T>?) {
