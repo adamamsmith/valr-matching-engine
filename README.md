@@ -67,6 +67,12 @@ To run the project directly with Gradle (without Docker), use the following comm
 ./gradlew run
 ```
 
+And to run the tests, use the following command:
+
+```bash
+./gradlew test
+```
+
 ## Notes & Further Considerations
 
 Firstly, I am new to `Kotlin` and as such I am not necessarily aware of best practices or some performance considerations. 

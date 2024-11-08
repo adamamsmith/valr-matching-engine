@@ -32,10 +32,6 @@ class OrderBookTest {
         val expected = simpleOrderBook.getBook()
         val actual = orderBook.getBook()
 
-        println(expected)
-        println()
-        println(actual)
-
         assertEquals(expected, actual)
     }
 
