@@ -21,7 +21,7 @@ class OrderValidationService(private val validCurrencyPairs: MutableSet<String>)
                 validateCurrencyPair(limitOrder.pair),
                 validateSide(limitOrder),
                 validateAmount("price", limitOrder.price),
-                validateAmount("quoteAmount", limitOrder.quoteAmount)
+                validateAmount("quantity", limitOrder.quantity)
 
             )
         )
