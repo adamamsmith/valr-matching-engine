@@ -9,6 +9,7 @@ import smith.adam.model.Config
 import smith.adam.orderbook.BaseOrderBook
 import smith.adam.orderbook.OrderBook
 import smith.adam.server.HttpServer
+import smith.adam.service.OrderService
 import smith.adam.service.OrderValidationService
 import java.io.FileNotFoundException
 
@@ -32,8 +33,9 @@ fun main() {
     }
 
     val validationService = OrderValidationService(pairs)
+    val orderService = OrderService(validationService)
 
-    vertx.deployVerticle(HttpServer(config.server.port, validationService), DeploymentOptions()) { result ->
+    vertx.deployVerticle(HttpServer(config.server.port, orderService), DeploymentOptions()) { result ->
         if (result.succeeded()) {
             logger.info("HttpServer deployed successfully.")
         } else {

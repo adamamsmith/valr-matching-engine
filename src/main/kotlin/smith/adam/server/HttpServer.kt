@@ -17,13 +17,12 @@ import smith.adam.orderbook.model.MarketOrder
 import smith.adam.server.model.ErrorResponse
 import smith.adam.server.model.OrderResponse
 import smith.adam.service.OrderService
-import smith.adam.service.OrderValidationService
 
 val logger: Logger = LoggerFactory.getLogger("HttpServer")
 
-class HttpServer(private val port: Int, private val validationService: OrderValidationService) : AbstractVerticle() {
+class HttpServer(private val port: Int, private val orderService: OrderService) : AbstractVerticle() {
     override fun start() {
-        val orderService = OrderService(vertx, validationService)
+        orderService.setEventBus(vertx.eventBus())
 
         val router = configureRouter(vertx, orderService)
         vertx.createHttpServer().requestHandler(router).listen(port) { result ->
@@ -133,7 +132,7 @@ class HttpServer(private val port: Int, private val validationService: OrderVali
     private fun buildErrorResponse(ctx: RoutingContext, status: Int, reason: String? = null) {
         ctx.response().setStatusCode(status).end(
             Json.encodeToString(
-                serializer(), ErrorResponse(status, reason ?: "An unexpected error occurred")
+                serializer(), ErrorResponse(status, reason ?: "An unexpected error occurred.")
             )
         )
     }

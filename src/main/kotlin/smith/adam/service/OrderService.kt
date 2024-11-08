@@ -2,15 +2,15 @@ package smith.adam.service
 
 import io.vertx.core.Future
 import io.vertx.core.Promise
-import io.vertx.core.Vertx
 import io.vertx.core.eventbus.EventBus
 import smith.adam.orderbook.model.*
 
-class OrderService(
-    vertx: Vertx,
-    private val orderValidationService: OrderValidationService
-) {
-    private val eventBus: EventBus = vertx.eventBus()
+class OrderService(private val orderValidationService: OrderValidationService) {
+    private lateinit var eventBus: EventBus
+
+    fun setEventBus(eventBus: EventBus) {
+        this.eventBus = eventBus
+    }
 
     fun placeMarketOrder(marketOrder: MarketOrder): Future<String> {
         orderValidationService.validate(marketOrder)

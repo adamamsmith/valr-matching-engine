@@ -24,7 +24,8 @@ class OrderServiceTest {
         vertx = Vertx.vertx()
         mockOrderValidationService = mockk()
 
-        orderService = OrderService(vertx, mockOrderValidationService)
+        orderService = OrderService(mockOrderValidationService)
+        orderService.setEventBus(vertx.eventBus())
 
         every { mockOrderValidationService.validate(any<MarketOrder>()) } returns Unit
         every { mockOrderValidationService.validate(any<LimitOrder>()) } returns Unit

@@ -25,6 +25,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
     implementation("com.charleskorn.kaml:kaml-jvm:0.61.0")
     testImplementation("io.vertx:vertx-junit5:${vertxVersion}")
+    testImplementation("io.vertx:vertx-web-client:${vertxVersion}")
     testImplementation("io.mockk:mockk:1.13.13")
     testImplementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation(kotlin("test"))
