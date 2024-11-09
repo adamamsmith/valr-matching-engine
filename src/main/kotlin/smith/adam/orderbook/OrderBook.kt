@@ -97,7 +97,7 @@ class OrderBook(pair: String) : BaseOrderBook(pair) {
         }
         else {
             // Market SELL or Limit order placement crossing bid ask spread
-            val isSELL = order.side == Side.SELL.name
+            val isSELL = Side.fromString(order.side) == Side.SELL
             val bookSide = if (isSELL) bids else asks
             val bestLevel = if (isSELL) bestBid else bestAsk
 
