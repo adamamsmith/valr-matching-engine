@@ -16,7 +16,7 @@ class RedBlackTreeTest {
     @Test
     fun `add - simple`() {
         tree.add(10)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertTrue(10 in values)
         assertRedBlackProperties(tree)
     }
@@ -25,7 +25,7 @@ class RedBlackTreeTest {
     fun `add - add repeat`() {
         tree.add(10)
         tree.add(10)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(10), values)
         assertRedBlackProperties(tree)
     }
@@ -35,7 +35,7 @@ class RedBlackTreeTest {
         tree.add(30)
         tree.add(20)
         tree.add(10)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(10, 20, 30), values)
         assertRedBlackProperties(tree)
     }
@@ -45,7 +45,7 @@ class RedBlackTreeTest {
         tree.add(30)
         tree.add(10)
         tree.add(20)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(10, 20, 30), values)
         assertRedBlackProperties(tree)
     }
@@ -55,7 +55,7 @@ class RedBlackTreeTest {
         tree.add(10)
         tree.add(20)
         tree.add(30)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(10, 20, 30), values)
         assertRedBlackProperties(tree)
     }
@@ -65,7 +65,7 @@ class RedBlackTreeTest {
         tree.add(10)
         tree.add(30)
         tree.add(20)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(10, 20, 30), values)
         assertRedBlackProperties(tree)
     }
@@ -75,7 +75,7 @@ class RedBlackTreeTest {
         tree.add(20)
         tree.add(10)
         tree.add(30)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(10, 20, 30), values)
         assertRedBlackProperties(tree)
     }
@@ -86,7 +86,7 @@ class RedBlackTreeTest {
         tree.add(10)
         tree.add(30)
         tree.add(5)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(5, 10, 20, 30), values)
         assertRedBlackProperties(tree)
     }
@@ -97,7 +97,7 @@ class RedBlackTreeTest {
         tree.add(10)
         tree.add(30)
         tree.add(15)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(10, 15, 20, 30), values)
         assertRedBlackProperties(tree)
     }
@@ -108,7 +108,7 @@ class RedBlackTreeTest {
         tree.add(10)
         tree.add(30)
         tree.add(25)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(10, 20, 25, 30), values)
         assertRedBlackProperties(tree)
     }
@@ -119,7 +119,7 @@ class RedBlackTreeTest {
         tree.add(10)
         tree.add(30)
         tree.add(35)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(10, 20, 30, 35), values)
         assertRedBlackProperties(tree)
     }
@@ -128,7 +128,7 @@ class RedBlackTreeTest {
     fun `delete - delete root node`() {
         val node = tree.add(10)
         tree.delete(node)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertTrue(values.isEmpty())
         assertRedBlackProperties(tree)
     }
@@ -139,7 +139,7 @@ class RedBlackTreeTest {
         val node = tree.add(10)
         tree.add(30)
         tree.delete(node)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(20, 30), values)
         assertTrue(tree.root?.data == 20)
         assertRedBlackProperties(tree)
@@ -152,7 +152,7 @@ class RedBlackTreeTest {
         tree.add(30)
         tree.add(5)
         tree.delete(node)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(5, 20, 30), values)
         assertTrue(tree.root?.data == 20)
         assertRedBlackProperties(tree)
@@ -165,7 +165,7 @@ class RedBlackTreeTest {
         tree.add(30)
         tree.add(15)
         tree.delete(node)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(15, 20, 30), values)
         assertTrue(tree.root?.data == 20)
         assertRedBlackProperties(tree)
@@ -178,7 +178,7 @@ class RedBlackTreeTest {
         val node = tree.add(30)
         tree.add(25)
         tree.delete(node)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(10, 20, 25), values)
         assertTrue(tree.root?.data == 20)
         assertRedBlackProperties(tree)
@@ -191,7 +191,7 @@ class RedBlackTreeTest {
         val node = tree.add(30)
         tree.add(35)
         tree.delete(node)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(10, 20, 35), values)
         assertTrue(tree.root?.data == 20)
         assertRedBlackProperties(tree)
@@ -203,7 +203,7 @@ class RedBlackTreeTest {
         tree.add(30)
         tree.add(10)
         tree.delete(node)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(10, 30), values)
         assertTrue(tree.root?.data == 30)
         assertRedBlackProperties(tree)
@@ -219,7 +219,7 @@ class RedBlackTreeTest {
         tree.add(25)
         tree.add(35)
         tree.delete(node)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(5, 15, 20, 25, 30, 35), values)
         assertTrue(tree.root?.data == 20)
         assertRedBlackProperties(tree)
@@ -235,10 +235,276 @@ class RedBlackTreeTest {
         tree.add(25)
         tree.add(35)
         tree.delete(node)
-        val values = tree.toList({ listOf(it) })
+        val values = tree.toList { listOf(it) }
         assertEquals(listOf(5, 10, 15, 20, 25, 35), values)
         assertTrue(tree.root?.data == 20)
         assertRedBlackProperties(tree)
+    }
+
+    @Test
+    fun `iteratorFromNode - leftmost leaf`() {
+        tree.add(20)
+        tree.add(10)
+        tree.add(30)
+        val node = tree.add(5)
+        tree.add(15)
+        tree.add(25)
+        tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(5, 10, 15, 20, 25, 30, 35)
+        assertEquals(expected, listFromNode)
+    }
+
+    @Test
+    fun `iteratorFromNode - rightmost leaf`() {
+        tree.add(20)
+        tree.add(10)
+        tree.add(30)
+        tree.add(5)
+        tree.add(15)
+        tree.add(25)
+        val node = tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(35)
+        assertEquals(expected, listFromNode)
+    }
+
+    @Test
+    fun `iteratorFromNode - left leaf`() {
+        tree.add(20)
+        tree.add(10)
+        tree.add(30)
+        tree.add(5)
+        val node = tree.add(15)
+        tree.add(25)
+        tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(15, 20, 25, 30, 35)
+        assertEquals(expected, listFromNode)
+    }
+
+    @Test
+    fun `iteratorFromNode - right leaf`() {
+        tree.add(20)
+        tree.add(10)
+        tree.add(30)
+        tree.add(5)
+        tree.add(15)
+        val node = tree.add(25)
+        tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(25, 30, 35)
+        assertEquals(expected, listFromNode)
+    }
+
+    @Test
+    fun `iteratorFromNode - right node`() {
+        tree.add(20)
+        val node = tree.add(10)
+        tree.add(30)
+        tree.add(5)
+        tree.add(15)
+        tree.add(25)
+        tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(10, 15, 20, 25, 30, 35)
+        assertEquals(expected, listFromNode)
+    }
+
+    @Test
+    fun `iteratorFromNode - left node`() {
+        tree.add(20)
+        tree.add(10)
+        val node = tree.add(30)
+        tree.add(5)
+        tree.add(15)
+        tree.add(25)
+        tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(30, 35)
+        assertEquals(expected, listFromNode)
+    }
+
+    @Test
+    fun `iteratorFromNode - root`() {
+        val node = tree.add(20)
+        tree.add(10)
+        tree.add(30)
+        tree.add(5)
+        tree.add(15)
+        tree.add(25)
+        tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(20, 25, 30, 35)
+        assertEquals(expected, listFromNode)
+    }
+
+    @Test
+    fun `iteratorFromNode - leftmost leaf reverse`() {
+        tree.add(20)
+        tree.add(10)
+        tree.add(30)
+        val node = tree.add(5)
+        tree.add(15)
+        tree.add(25)
+        tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node, reverse = true)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(5)
+        assertEquals(expected, listFromNode)
+    }
+
+    @Test
+    fun `iteratorFromNode - rightmost leaf reverse`() {
+        tree.add(20)
+        tree.add(10)
+        tree.add(30)
+        tree.add(5)
+        tree.add(15)
+        tree.add(25)
+        val node = tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node, reverse = true)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(35, 30, 25, 20, 15, 10, 5)
+        assertEquals(expected, listFromNode)
+    }
+
+    @Test
+    fun `iteratorFromNode - left leaf reverse`() {
+        tree.add(20)
+        tree.add(10)
+        tree.add(30)
+        tree.add(5)
+        val node = tree.add(15)
+        tree.add(25)
+        tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node, reverse = true)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(15, 10, 5)
+        assertEquals(expected, listFromNode)
+    }
+
+    @Test
+    fun `iteratorFromNode - right leaf reverse`() {
+        tree.add(20)
+        tree.add(10)
+        tree.add(30)
+        tree.add(5)
+        tree.add(15)
+        val node = tree.add(25)
+        tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node, reverse = true)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(25, 20, 15, 10, 5)
+        assertEquals(expected, listFromNode)
+    }
+
+    @Test
+    fun `iteratorFromNode - right node reverse`() {
+        tree.add(20)
+        val node = tree.add(10)
+        tree.add(30)
+        tree.add(5)
+        tree.add(15)
+        tree.add(25)
+        tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node, reverse = true)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(10, 5)
+        assertEquals(expected, listFromNode)
+    }
+
+    @Test
+    fun `iteratorFromNode - left node reverse`() {
+        tree.add(20)
+        tree.add(10)
+        val node = tree.add(30)
+        tree.add(5)
+        tree.add(15)
+        tree.add(25)
+        tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node, reverse = true)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(30, 25, 20, 15, 10, 5)
+        assertEquals(expected, listFromNode)
+    }
+
+    @Test
+    fun `iteratorFromNode - root reverse`() {
+        val node = tree.add(20)
+        tree.add(10)
+        tree.add(30)
+        tree.add(5)
+        tree.add(15)
+        tree.add(25)
+        tree.add(35)
+
+        val listFromNode = mutableListOf<Int>()
+        val it = tree.iteratorFromNode(node, reverse = true)
+        while (it.hasNext()) {
+            listFromNode.add(it.next().data)
+        }
+        val expected = listOf(20, 15, 10, 5)
+        assertEquals(expected, listFromNode)
     }
 
     // Helper Functions for testing

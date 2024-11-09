@@ -117,7 +117,7 @@ class BaseOrderBookTest {
         val order = MarketOrder(id = "1", pair = "BTCUSD", side = "BUY", quoteAmount = 50000.0)
         val weightedAveragePrice = 50000.0
         val quantity = 1.0
-        addTradeFunction.call(orderbook, order, weightedAveragePrice, quantity, 0.0)
+        addTradeFunction.call(orderbook, order, weightedAveragePrice, quantity)
 
         val trade: Trade = (getTradeHistory.call(orderbook, 0, 10) as List<Trade>).first()
 

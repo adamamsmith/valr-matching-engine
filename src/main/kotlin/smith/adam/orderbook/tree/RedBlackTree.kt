@@ -61,7 +61,7 @@ class RedBlackTree<T : Comparable<T>> {
                 }
 
                 if (stack.isEmpty()) {
-                    updateCurrentTraversalRoot()
+                    updateCurrentTraversalRoot(reverse = reverse)
                 }
 
                 return nextNode
@@ -103,8 +103,8 @@ class RedBlackTree<T : Comparable<T>> {
         }
     }
 
-    fun <U> toList(mutator: (T) -> List<U>, reverse: Boolean = false): List<U> {
-        return traverse(root, mutator = mutator, reverse = reverse)
+    fun <U> toList(reverse: Boolean = false, mutator: (T) -> List<U>): List<U> {
+        return traverse(root, reverse = reverse, mutator = mutator)
     }
 
     private fun insertNode(root: Node<T>?, newNode: Node<T>): Node<T> {
@@ -302,14 +302,14 @@ class RedBlackTree<T : Comparable<T>> {
         node.parent = leftChild
     }
 
-    private fun <U> traverse(node: Node<T>?, mutator: (T) -> List<U>, reverse: Boolean = false): List<U> {
+    private fun <U> traverse(node: Node<T>?, reverse: Boolean = false, mutator: (T) -> List<U>): List<U> {
         if (node == null) return emptyList()
 
         val result = mutableListOf<U>()
 
-        result.addAll(traverse(if (reverse) node.right else node.left, mutator = mutator, reverse))
+        result.addAll(traverse(if (reverse) node.right else node.left, reverse, mutator = mutator))
         result.addAll(mutator(node.data))
-        result.addAll(traverse(if (reverse) node.left else node.right, mutator = mutator, reverse))
+        result.addAll(traverse(if (reverse) node.left else node.right, reverse, mutator = mutator))
 
         return result
     }

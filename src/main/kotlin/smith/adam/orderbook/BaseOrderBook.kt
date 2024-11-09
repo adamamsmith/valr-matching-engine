@@ -82,19 +82,18 @@ abstract class BaseOrderBook(val pair: String) : AbstractVerticle() {
     protected fun addTrade(
         order: BaseOrder,
         weightedAveragePrice: Double,
-        totalOrderAmount: Double,
-        remainingQuantity: Double
+        quantity: Double
     ) {
-        if (totalOrderAmount - remainingQuantity > 0) {
+        if (quantity > 0) {
             val trade = Trade(
                 id = "${order.id}",
                 currencyPair = order.pair,
                 price = weightedAveragePrice,
-                quantity = totalOrderAmount - remainingQuantity,
+                quantity = quantity,
                 tradedAt = System.currentTimeMillis(),
                 takerSide = order.side,
                 sequenceId = sequenceId.getAndIncrement(),
-                quoteVolume = totalOrderAmount - remainingQuantity
+                quoteVolume = quantity * weightedAveragePrice
             )
             tradeHistory.addFirst(trade)
         }

@@ -33,11 +33,13 @@ class HttpServerTest {
 
     @BeforeEach
     fun setup(vertx: Vertx, testContext: VertxTestContext) {
+        val port = 8000
+
         this.vertx = vertx
         mockOrderService = mockk<OrderService>(relaxed = true)
-        client = WebClient.create(vertx, WebClientOptions().setDefaultPort(8080))
+        client = WebClient.create(vertx, WebClientOptions().setDefaultPort(port))
 
-        vertx.deployVerticle(HttpServer(8080, mockOrderService)) { result ->
+        vertx.deployVerticle(HttpServer(port, mockOrderService)) { result ->
             if (result.succeeded()) testContext.completeNow() else testContext.failNow(result.cause())
         }
     }

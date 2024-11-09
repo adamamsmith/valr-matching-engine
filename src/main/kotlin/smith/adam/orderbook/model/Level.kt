@@ -6,7 +6,8 @@ data class Level(
     val side: Side,
     val price: Double,
     var size: Int,
-    var totalQuantity: Double,
+    var baseAmount: Double,
+    var quoteAmount: Double,
     var headOrder: LimitOrder? = null,
     var tailOrder: LimitOrder? = null
 ) : Comparable<Level> {

@@ -1,6 +1,9 @@
 package smith.adam.orderbook
 
-import smith.adam.orderbook.model.*
+import smith.adam.orderbook.model.BaseOrder
+import smith.adam.orderbook.model.Level
+import smith.adam.orderbook.model.LimitOrder
+import smith.adam.orderbook.model.Side
 import smith.adam.orderbook.tree.RedBlackTree
 
 class OrderBook(pair: String) : BaseOrderBook(pair) {
@@ -13,23 +16,19 @@ class OrderBook(pair: String) : BaseOrderBook(pair) {
     private var orders: MutableMap<String, LimitOrder> = mutableMapOf()
 
     override fun getBook(): Map<String, List<LimitOrder>> {
-        return mapOf(
-            "Bids" to bids.toList({ it.orders() }, true),
-            "Asks" to asks.toList({ it.orders() }, false)
-        )
+        return mapOf("Bids" to bids.toList(true) { it.orders() }, "Asks" to asks.toList { it.orders() })
     }
 
     override fun add(limitOrder: LimitOrder) {
-        if (crossingBidAsk(limitOrder)) {
-            limitOrder.quantity = match(limitOrder)
-        }
+        if (crossingBidAsk(limitOrder)) limitOrder.quantity = match(limitOrder)
+        if (limitOrder.quantity <= 0) return
 
         if (limitOrder.price !in levelNodes) {
             when (Side.fromString(limitOrder.side)) {
                 Side.BUY -> {
                     val node = bids.add(limitOrder.toLevel())
 
-                    if (bestBid == null || bestBid!!.data > node.data) {
+                    if (bestBid == null || node.data > bestBid!!.data) {
                         bestBid = node
                     }
 
@@ -39,7 +38,7 @@ class OrderBook(pair: String) : BaseOrderBook(pair) {
                 Side.SELL -> {
                     val node = asks.add(limitOrder.toLevel())
 
-                    if (bestAsk == null || bestAsk!!.data < node.data) {
+                    if (bestAsk == null || node.data < bestAsk!!.data) {
                         bestAsk = node
                     }
 
@@ -58,62 +57,81 @@ class OrderBook(pair: String) : BaseOrderBook(pair) {
 
         node.data.tailOrder = order
         node.data.size += 1
-        node.data.totalQuantity += order.quantity
+        node.data.baseAmount += order.quantity
+        node.data.quoteAmount += order.quantity * order.price
 
         orders[order.id!!] = order
     }
 
     override fun match(order: BaseOrder): Double {
-        val isBuyOrder = Side.fromString(order.side) == Side.BUY
-        val bestLevel = if (isBuyOrder) bestAsk else bestBid
-        val levels = if (isBuyOrder) asks else bids
-        val totalOrderAmount = if (isBuyOrder) order.quoteAmount!! else order.baseAmount!!
+        if (order.quoteAmount != null) {
+            // Market BUY; Limit orders & Market SELL always have quoteAmount = null
+            var remainingQuoteAmount = order.quoteAmount!!
+            var tradedBaseAmount = 0.0
+            var weightedAveragePrice = 0.0
 
-        var remainingQuantity = totalOrderAmount
-        var weightedAveragePrice = 0.0
+            val it = asks.iteratorFromNode(bestAsk)
+            while (it.hasNext()) {
+                val node = it.next()
 
-        val it = levels.iteratorFromNode(bestLevel)
-        while (it.hasNext()) {
-            val node = it.next()
+                if (remainingQuoteAmount <= 0) break
 
-            if (remainingQuantity <= 0) break
-            if (order.price != null) {
-                if ((isBuyOrder && order.price!! < node.data.price)
-                    || (!isBuyOrder && order.price!! > node.data.price)
-                ) break
+                val quoteAmount = minOf(remainingQuoteAmount, node.data.quoteAmount)
+                val baseAmount = minOf(quoteAmount / node.data.price, node.data.baseAmount)
+
+                remainingQuoteAmount -= quoteAmount
+                tradedBaseAmount += baseAmount
+                weightedAveragePrice += quoteAmount
+
+                if (node.data.quoteAmount > quoteAmount) {
+                    matchOrdersInLevel(node.data, baseAmount)
+                } else {
+                    deleteLevel(node)
+                }
             }
 
-            val tradeQuantity = minOf(remainingQuantity, node.data.totalQuantity)
+            weightedAveragePrice /= tradedBaseAmount
+            addTrade(order, weightedAveragePrice, tradedBaseAmount)
 
-            remainingQuantity -= tradeQuantity
-            weightedAveragePrice += node.data.price * tradeQuantity
+            return 0.0
+        }
+        else {
+            // Market SELL or Limit order placement crossing bid ask spread
+            val isSELL = order.side == Side.SELL.name
+            val bookSide = if (isSELL) bids else asks
+            val bestLevel = if (isSELL) bestBid else bestAsk
 
-            if (node.data.totalQuantity > tradeQuantity) {
-                var remainingOrderQuantity = tradeQuantity
-                val limitOrderIt = node.data.orderIterator()
-                while (limitOrderIt.hasNext()) {
-                    val limitOrder = limitOrderIt.next()
+            var remainingBaseAmount = order.baseAmount!!
+            var weightedAveragePrice = 0.0
 
-                    if (remainingQuantity <= 0) break
-                    val matchedQuantity = minOf(remainingOrderQuantity, limitOrder.quantity)
-                    remainingOrderQuantity -= limitOrder.quantity
+            val it = bookSide.iteratorFromNode(bestLevel, reverse = isSELL)
+            while (it.hasNext()) {
+                val node = it.next()
 
-                    if (limitOrder.quantity > matchedQuantity) {
-                        limitOrder.quantity -= matchedQuantity
-                    } else {
-                        remove(limitOrder.id!!)
-                    }
+                if (remainingBaseAmount <= 0) break
+                if (isSELL) {
+                    if (order.price != null && order.price!! > node.data.price) break
+                } else {
+                    if (order.price != null && order.price!! < node.data.price) break
                 }
 
-            } else {
-                deleteLevel(node)
+                val baseAmount = minOf(remainingBaseAmount, node.data.baseAmount)
+
+                remainingBaseAmount -= baseAmount
+                weightedAveragePrice += baseAmount * node.data.price
+
+                if (node.data.baseAmount > baseAmount) {
+                    matchOrdersInLevel(node.data, baseAmount)
+                } else {
+                    deleteLevel(node)
+                }
             }
+
+            weightedAveragePrice /= (order.baseAmount!! - remainingBaseAmount)
+            addTrade(order, weightedAveragePrice, order.baseAmount!! - remainingBaseAmount)
+
+            return if (order.price != null) remainingBaseAmount else 0.0
         }
-
-        weightedAveragePrice /= (totalOrderAmount - remainingQuantity)
-        addTrade(order, weightedAveragePrice, totalOrderAmount, remainingQuantity)
-
-        return remainingQuantity
     }
 
     override fun remove(orderId: String): Boolean {
@@ -126,7 +144,8 @@ class OrderBook(pair: String) : BaseOrderBook(pair) {
         }
 
         node.data.size -= 1
-        node.data.totalQuantity -= order.quantity
+        node.data.baseAmount -= order.quantity
+        node.data.quoteAmount -= order.quantity * order.price
         if (node.data.headOrder?.id == order.id) {
             node.data.headOrder = order.nextOrder
         }
@@ -174,17 +193,39 @@ class OrderBook(pair: String) : BaseOrderBook(pair) {
         levelNodes.remove(level.data.price)
     }
 
+    private fun matchOrdersInLevel(level: Level, baseMatchedAmount: Double) {
+        var remainingAmount = baseMatchedAmount
+        val limitOrderIt = level.orderIterator()
+        while (limitOrderIt.hasNext()) {
+            val limitOrder = limitOrderIt.next()
+
+            if (remainingAmount <= 0) break
+
+            val matchedQuantity = minOf(remainingAmount, limitOrder.quantity)
+            remainingAmount -= limitOrder.quantity
+
+            if (limitOrder.quantity > matchedQuantity) {
+                limitOrder.updateQuantity(limitOrder.quantity - matchedQuantity)
+                level.quoteAmount -= limitOrder.baseAmount * limitOrder.price
+                level.baseAmount -= limitOrder.baseAmount
+            } else {
+                remove(limitOrder.id!!)
+            }
+        }
+    }
+
     private fun setToNextBestLevel(node: RedBlackTree.Node<Level>) {
         when (node.data.side) {
             Side.BUY -> {
                 if (node == bestBid) {
-                    val it = bids.iteratorFromNode(node)
+                    val it = bids.iteratorFromNode(node, reverse = true)
                     // We call it.next() as the first element returned by the iterator will always be the node that is
                     // passed in.
                     it.next()
                     bestBid = if (it.hasNext()) it.next() else null
                 }
             }
+
             Side.SELL -> {
                 if (node == bestAsk) {
                     val it = asks.iteratorFromNode(node)

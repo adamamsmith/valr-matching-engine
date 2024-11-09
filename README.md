@@ -9,9 +9,7 @@ The `valr-matching-engine` has the following components:
 1. An `HttpServer` Verticle built using the `vert.x HttpServer`.
 2. An `OrderService` which validates requests to the `HttpServer` and sends them on to the `Orderbook` using a `vert.x EventBus`.
 3. An `OrderValidationService` which contains the validation logic for all requests.
-4. An abstract `BaseOrderBook` Verticle which is implemented by:
-   1. The `OrderBook` class which is my implementation of a high performance orderbook.
-   2. The `SimpleOrderBook` class which is a naive implementation used for testing and to check correctness of the `OrderBook` implementation.
+4. An abstract `BaseOrderBook` Verticle which is implemented by the `OrderBook` class which is my implementation of a high performance orderbook.
 
 ## Design
 
@@ -84,8 +82,9 @@ On further improvements:
     * For example the `MarketOrder`s, `LimitOrder`s, and `Level`s could be managed by corresponding `Object Pool`s (although I haven't done something like this before).
 2. Actually implement the code to use `Hazelcast` so that the Verticles can be deployed on an architecture optimized for performance.
 3. Implement authentication for the placement and cancellation of orders.
-4. Track orders submitted by a user so that their status can be queried. 
-5. Analyse how the orderbook is used in a production environment and tweak implementation for efficiency. For example if there is better knowledge 
+4. Add a `decimalPlaces` parameter to the `BaseOrderBook` so that each market can consistent rounding to that accuracy.
+5. Track orders submitted by a user so that their status can be queried. 
+6. Analyse how the orderbook is used in a production environment and tweak implementation for efficiency. For example if there is better knowledge 
 about the pattern of order placements you could edit the data structures used to accommodate this.
 
 ## Interacting with the Application

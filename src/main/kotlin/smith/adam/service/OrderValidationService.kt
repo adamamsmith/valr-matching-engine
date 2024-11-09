@@ -10,7 +10,9 @@ class OrderValidationService(private val validCurrencyPairs: MutableSet<String>)
     fun validate(marketOrder: MarketOrder) {
         buildBadRequestException(
             listOf(
-                validateCurrencyPair(marketOrder.pair), validateMarketOrderAmount(marketOrder)
+                validateCurrencyPair(marketOrder.pair),
+                validateBaseOrQuoteAmount(marketOrder),
+                validateMarketOrderAmount(marketOrder)
             )
         )
     }
@@ -54,6 +56,16 @@ class OrderValidationService(private val validCurrencyPairs: MutableSet<String>)
             Side.SELL -> validateAmount("baseAmount", marketOrder.baseAmount, " when side is SELL")
             null -> "Invalid side: ${marketOrder.side}"
         }
+    }
+
+    private fun validateBaseOrQuoteAmount(marketOrder: MarketOrder): String {
+        return if (marketOrder.baseAmount != null && marketOrder.quoteAmount != null) {
+            when (Side.fromString(marketOrder.side)) {
+                Side.BUY -> "Only quoteAmount should be specified"
+                Side.SELL -> "Only baseAmount should be specified"
+                null -> ""
+            }
+        } else ""
     }
 
     private fun validateAmount(name: String, amount: Double?, extra: String? = null): String {

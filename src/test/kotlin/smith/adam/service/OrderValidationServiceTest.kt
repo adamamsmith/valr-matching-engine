@@ -25,7 +25,7 @@ class OrderValidationServiceTest {
 
     @Test
     fun `validate market order with invalid currency pair should throw exception`() {
-        val marketOrder = MarketOrder(id = "1", pair = "INVALID", side = "BUY", quoteAmount = 1000.0, baseAmount = 1.0)
+        val marketOrder = MarketOrder(id = "1", pair = "INVALID", side = "BUY", quoteAmount = 1000.0)
 
         val exception = assertThrows<HttpException> {
             orderValidationService.validate(marketOrder)
@@ -51,6 +51,26 @@ class OrderValidationServiceTest {
             orderValidationService.validate(marketOrder)
         }
         assertEquals("quoteAmount must be non-negative when side is BUY.", exception.payload)
+    }
+
+    @Test
+    fun `validate market order BUY with both amounts specified should throw exception`() {
+        val marketOrder = MarketOrder(id = "1", pair = "BTCUSD", side = "BUY", baseAmount = 1.0, quoteAmount = 1.0)
+
+        val exception = assertThrows<HttpException> {
+            orderValidationService.validate(marketOrder)
+        }
+        assertEquals("Only quoteAmount should be specified.", exception.payload)
+    }
+
+    @Test
+    fun `validate market order SELL with both amounts specified should throw exception`() {
+        val marketOrder = MarketOrder(id = "1", pair = "BTCUSD", side = "SELL", baseAmount = 1.0, quoteAmount = 1.0)
+
+        val exception = assertThrows<HttpException> {
+            orderValidationService.validate(marketOrder)
+        }
+        assertEquals("Only baseAmount should be specified.", exception.payload)
     }
 
     @Test

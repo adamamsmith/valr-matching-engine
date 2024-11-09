@@ -16,14 +16,15 @@ data class LimitOrder(
     @Transient var previousOrder: LimitOrder? = null,
     @Transient var parent: RedBlackTree.Node<Level>? = null
 ) : BaseOrder() {
-    @Transient override val baseAmount = quantity
-    @Transient override val quoteAmount = price * quantity
+    @Transient override var baseAmount = quantity
+    @Transient override var quoteAmount: Double? = null
 
     fun toLevel(): Level = Level(
         side = Side.fromString(side)!!,
         price = price,
         size = 0,
-        totalQuantity = 0.0,
+        baseAmount = 0.0,
+        quoteAmount = 0.0,
         headOrder = null,
         tailOrder = null
     )
@@ -44,6 +45,12 @@ data class LimitOrder(
 
     override fun toString(): String {
         return "LimitOrder(id=$id, side='$side', quantity=$quantity, price=$price, pair='$pair', timestamp=$timestamp)"
+    }
+
+    fun updateQuantity(newQuantity: Double) {
+        quantity = newQuantity
+        baseAmount = newQuantity
+        quoteAmount = newQuantity * baseAmount
     }
 }
 
