@@ -50,7 +50,6 @@ data class LimitOrder(
     fun updateQuantity(newQuantity: Double) {
         quantity = newQuantity
         baseAmount = newQuantity
-        quoteAmount = newQuantity * baseAmount
     }
 }
 
